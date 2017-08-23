@@ -454,7 +454,6 @@ class KnobsItemDelegate(QtGui.QItemDelegate):
         super(KnobsItemDelegate, self).__init__()
 
 
-
     def createEditor(self, parent, option, index):
 
         super(KnobsItemDelegate, self).createEditor()
