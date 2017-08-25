@@ -7,7 +7,12 @@ try:
 except ImportError:
     nuke_loaded = False
 
-from PySide import QtCore, QtGui
+if __name__ == '__main__':
+    from PySide2 import QtCore, QtGui, QtWidgets
+    __binding__ = 'PySide2'
+else:
+    from Qt import QtCore, QtGui, QtWidgets, __binding__
+
 
 
 def get_unique(seq):
@@ -102,7 +107,7 @@ def find_substring_in_dict_keys(dictionary, key_str, lower=True, first_only=Fals
     return result
 
 
-class KnobStatesFilterModel(QtGui.QSortFilterProxyModel):
+class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
     """Filters columns by the knobs flags
 
     """
@@ -134,7 +139,7 @@ class KnobStatesFilterModel(QtGui.QSortFilterProxyModel):
         self.invalidateFilter()
 
 
-class ListFilterModel(QtGui.QSortFilterProxyModel):
+class ListFilterModel(QtCore.QSortFilterProxyModel):
     """abstract class that defines how the filter is set
 
     The derived FilterProxyModel should do substring matching if
@@ -206,7 +211,7 @@ class NodeClassFilterModel(ListFilterModel):
         return self.match(node_class)
 
 
-class EmptyColumnFilterModel(QtGui.QSortFilterProxyModel):
+class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
     def __init__(self, parent):
         super(EmptyColumnFilterModel, self).__init__(parent)
 
@@ -236,9 +241,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             self.setup_model_data()
 
     def set_node_list(self, node_list):
+        self.beginResetModel()
         self._node_list = node_list
         self.setup_model_data()
-        self.reset()
+        self.endResetModel()
 
     def rowCount(self, parent):
         if parent.isValid():
@@ -279,6 +285,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             return
         for node in self._node_list:
             if node:
+                # noinspection PyUnresolvedReferences
                 for knob_name, knob in node.knobs().iteritems():
                     if knob_name not in [knob_header.name() for knob_header in self._header]:
                         self._header.append(knob)
@@ -311,9 +318,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         node = self._node_list[row]
 
         if not node:
+            self.beginResetModel()
             self._node_list.remove(node)
             self.setup_model_data()
-            self.reset()
+            self.endResetModel()
             return None
 
         knob = node.knob(self._header[col].name())
@@ -323,7 +331,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 try:
                     return str(knob.value())
                 except Exception as exception:
-                    print exception
+                    print(exception)
 
             elif role == QtCore.Qt.EditRole:
                 return knob.value()
@@ -333,6 +341,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
             elif role == QtCore.Qt.BackgroundRole:
                 if knob.isAnimated():
+                    # noinspection PyArgumentList
                     if knob.isKeyAt(nuke.frame()):
                         return QtGui.QBrush(QtGui.QColor().fromRgbF(0.165186, 0.385106, 0.723738))
                     return QtGui.QBrush(QtGui.QColor().fromRgbF(0.312839, 0.430188, 0.544651))
@@ -448,24 +457,35 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return node
 
 
-class KnobsItemDelegate(QtGui.QItemDelegate):
+class KnobsItemDelegate(QtWidgets.QItemDelegate):
 
     def __init__(self):
         super(KnobsItemDelegate, self).__init__()
 
-
     def createEditor(self, parent, option, index):
 
-        super(KnobsItemDelegate, self).createEditor()
+        return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+
+    def setEditorData(self, editor, index):
+        
+        super(KnobsItemDelegate, self).setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+
+        super(KnobsItemDelegate, self).setModelData(editor, model, index)
 
 
-class NodeHeaderView(QtGui.QHeaderView):
+class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
     """
 
     def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
         super(NodeHeaderView, self).__init__(orientation, parent)
-        self.setClickable(True)
+        if "PySide2" in __binding__:
+            self.setSectionsClickable(True)
+        elif "PySide" in __binding__:
+            self.setClickable(True)
+        # noinspection PyUnresolvedReferences
         self.sectionClicked.connect(self.select_node)
 
     def select_node(self, section):
@@ -474,7 +494,7 @@ class NodeHeaderView(QtGui.QHeaderView):
         select_node(node, zoom=1)
 
 
-class NodeTableView(QtGui.QTableView):
+class NodeTableView(QtWidgets.QTableView):
     """Table with multi-cell editing
     """
 
@@ -482,9 +502,14 @@ class NodeTableView(QtGui.QTableView):
         super(NodeTableView, self).__init__(parent)
         self.setAlternatingRowColors(True)
         self.setSortingEnabled(True)
+
+        self.delegate = KnobsItemDelegate()
+        self.setItemDelegate(self.delegate)
+
+
         self.resizeColumnsToContents()
-        self.setHorizontalScrollMode(QtGui.QTableView.ScrollPerPixel)
-        self.setVerticalScrollMode(QtGui.QTableView.ScrollPerPixel)
+        self.setHorizontalScrollMode(QtWidgets.QTableView.ScrollPerPixel)
+        self.setVerticalScrollMode(QtWidgets.QTableView.ScrollPerPixel)
 
         self.nodes_header = NodeHeaderView(QtCore.Qt.Vertical, parent)
         self.setVerticalHeader(self.nodes_header)
@@ -527,7 +552,25 @@ class NodeTableView(QtGui.QTableView):
                     _model.setData(idx, value, QtCore.Qt.EditRole)
 
 
-class MultiCompleter(QtGui.QCompleter):
+class ListModel(QtCore.QAbstractItemModel):
+
+    def __init__(self, lst):
+        super(ListModel, self).__init__()
+
+        self.lst = lst
+
+    def rowCount(self, *args, **kwargs):
+        return len(self.lst)
+
+    def index(self, row, column, parent):
+        return self.createIndex(row, column, parent)
+
+    def data(self, index, role):
+        row = index.row()
+        return self.lst[row]
+
+
+class MultiCompleter(QtWidgets.QCompleter):
     """QCompleter that supports completing multiple words in a QLineEdit,
         separated by delimiter.
 
@@ -537,7 +580,7 @@ class MultiCompleter(QtGui.QCompleter):
     """
     def __init__(self, model_list=None, delimiter=","):
         super(MultiCompleter, self).__init__(model_list)
-        self.setCompletionMode(QtGui.QCompleter.InlineCompletion)
+        self.setCompletionMode(QtWidgets.QCompleter.InlineCompletion)
         self.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.delimiter = delimiter
 
@@ -553,7 +596,7 @@ class MultiCompleter(QtGui.QCompleter):
         return [path]
 
 
-class KeepOpenMenu(QtGui.QMenu):
+class KeepOpenMenu(QtWidgets.QMenu):
     """Menu that stays open to allow multiple selections
 
     Warnings: broken atm, manu actually doesn't stay open
@@ -565,7 +608,7 @@ class KeepOpenMenu(QtGui.QMenu):
 
     def eventFilter(self, obj, event):
         if event.type() in [QtCore.QEvent.MouseButtonRelease]:
-            if isinstance(obj, QtGui.QMenu):
+            if isinstance(obj, QtWidgets.QMenu):
                 if obj.activeAction():
                     # if the selected action does not have a submenu
                     if not obj.activeAction().menu():
@@ -576,19 +619,19 @@ class KeepOpenMenu(QtGui.QMenu):
         return super(KeepOpenMenu, self).eventFilter(obj, event)
 
 
-class CheckAction(QtGui.QAction):
+class CheckAction(QtWidgets.QAction):
     """Creates a checkable QAction
 
     Args:
         text (str): text to display on QAction
-        parent (QtGui.QWidget): parent widget (optional)
+        parent (QtWidgets.QWidget): parent widget (optional)
     """
     def __init__(self, text, parent=None):
         super(CheckAction, self).__init__(text, parent)
         self.setCheckable(True)
 
 
-class NodeTableWidget(QtGui.QWidget):
+class NodeTableWidget(QtWidgets.QWidget):
     """Creates the GUI for the table view and filtering
 
     Filtering is achieved by stacking multiple custom QSortFilterProxyModels
@@ -622,19 +665,19 @@ class NodeTableWidget(QtGui.QWidget):
         self._node_class_filter = None
 
         # Content
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.menu_bar = QtGui.QMenuBar(self)
+        self.menu_bar = QtWidgets.QMenuBar(self)
 
-        self.load_selected_action = QtGui.QAction('Load selected Nodes', self.menu_bar)
+        self.load_selected_action = QtWidgets.QAction('Load selected Nodes', self.menu_bar)
         self.menu_bar.addAction(self.load_selected_action)
         self.load_selected_action.triggered.connect(self.load_selected)
 
-        self.show_menu = KeepOpenMenu('Show')  # type: QtGui.QMenu
+        self.show_menu = KeepOpenMenu('Show')  # type: QtWidgets.QMenu
         self.menu_bar.addMenu(self.show_menu)
-        self.knobs_menu = KeepOpenMenu('Knobs')  # type: QtGui.QMenu
+        self.knobs_menu = KeepOpenMenu('Knobs')  # type: QtWidgets.QMenu
         self.show_menu.addMenu(self.knobs_menu)
 
         self.all_knobs_action = CheckAction('all', self.knobs_menu)
@@ -654,41 +697,44 @@ class NodeTableWidget(QtGui.QWidget):
         self.nodes_classes_menu = self.show_menu.addMenu('Nodes')
 
         # Filter Widget
-        self.filter_widget = QtGui.QWidget(self)
-        self.filter_layout = QtGui.QHBoxLayout(self.filter_widget)
+        self.filter_widget = QtWidgets.QWidget(self)
+        self.filter_layout = QtWidgets.QHBoxLayout(self.filter_widget)
         self.filter_layout.setContentsMargins(0, 0, 0, 0)
         self.filter_widget.setLayout(self.filter_layout)
 
         # Filter by node class:
-        self.node_class_filter_label = QtGui.QLabel('node: class:')
+        self.node_class_filter_label = QtWidgets.QLabel('node: class:')
         self.filter_layout.addWidget(self.node_class_filter_label)
-        self.node_class_filter_line_edit = QtGui.QLineEdit(self.filter_widget)
+        self.node_class_filter_line_edit = QtWidgets.QLineEdit(self.filter_widget)
         self.node_class_completer = MultiCompleter(self.node_classes)
+        self.node_class_model = self.node_class_completer.model()
         self.node_class_filter_line_edit.setCompleter(self.node_class_completer)
         self.node_class_filter_line_edit.textChanged.connect(self.node_class_filter_changed)
         self.filter_layout.addWidget(self.node_class_filter_line_edit)
 
         # Filter by node name:
-        self.node_name_filter_label = QtGui.QLabel(' name:')
+        self.node_name_filter_label = QtWidgets.QLabel(' name:')
         self.filter_layout.addWidget(self.node_name_filter_label)
-        self.node_name_filter_line_edit = QtGui.QLineEdit()
+        self.node_name_filter_line_edit = QtWidgets.QLineEdit()
         self.node_name_filter_label.setAcceptDrops(True)
         self.node_name_completer = MultiCompleter(self.node_names)
+        self.node_name_model = self.node_name_completer.model()
         self.node_name_filter_line_edit.setCompleter(self.node_name_completer)
         self.node_name_filter_line_edit.textChanged.connect(self.node_name_filter_changed)
         self.filter_layout.addWidget(self.node_name_filter_line_edit)
 
-        self.filter_separator_knobs = QtGui.QFrame(self.filter_widget)
-        self.filter_separator_knobs.setFrameShape(QtGui.QFrame.VLine)
+        self.filter_separator_knobs = QtWidgets.QFrame(self.filter_widget)
+        self.filter_separator_knobs.setFrameShape(QtWidgets.QFrame.VLine)
         self.filter_layout.addWidget(self.filter_separator_knobs)
 
         # Filter by knob name:
-        self.knob_filter_label = QtGui.QLabel('knob:')
+        self.knob_filter_label = QtWidgets.QLabel('knob:')
         self.filter_layout.addWidget(self.knob_filter_label)
 
-        self.knob_name_filter_line_edit = QtGui.QLineEdit()
+        self.knob_name_filter_line_edit = QtWidgets.QLineEdit()
         self.knob_name_filter_line_edit.setAcceptDrops(True)
         self.knob_name_filter_completer = MultiCompleter(self.knob_names)
+        self.knob_name_filter_model = self.knob_name_filter_completer.model()
         self.knob_name_filter_line_edit.setCompleter(self.knob_name_filter_completer)
         self.knob_name_filter_line_edit.textChanged.connect(self.knob_name_filter_changed)
         self.filter_layout.addWidget(self.knob_name_filter_line_edit)
@@ -787,6 +833,7 @@ class NodeTableWidget(QtGui.QWidget):
         self.table_model.set_node_list(self._node_list)
         self.node_name_completer.setModel(QtGui.QStringListModel(self.node_names))
         self.node_class_completer.setModel(QtGui.QStringListModel(self.node_classes))
+        self.knob_name_filter_completer.setModel(QtGui.QStringListModel(self.knob_names))
         self.table_view.resizeColumnsToContents()
 
     @QtCore.Slot(bool)
@@ -897,8 +944,8 @@ class NodeTableWidget(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    if not QtGui.QApplication.instance():
-        app = QtGui.QApplication(sys.argv)
+    if not QtWidgets.QApplication.instance():
+        app = QtWidgets.QApplication(sys.argv)
 
     widget = NodeTableWidget()
     widget.show()
