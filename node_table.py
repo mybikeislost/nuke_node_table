@@ -128,7 +128,7 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
         knob = self.sourceModel().headerData(column, QtCore.Qt.Horizontal, QtCore.Qt.UserRole)
 
         accept = knob.visible() or self._hidden_knobs
-        accept |= knob.enabled() or self._disabled_knobs
+        accept &= knob.enabled() or self._disabled_knobs
 
         return accept
 
