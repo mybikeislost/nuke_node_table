@@ -745,9 +745,12 @@ class NodeTableView(QtWidgets.QTableView):
 
 class ListModel(QtCore.QAbstractItemModel):
 
+    """replacement for QStringListModel that can't be created in the PySide2 API
+
+    """
+
     def __init__(self, lst):
         super(ListModel, self).__init__()
-
         self.lst = lst
 
     def rowCount(self, *args, **kwargs):
@@ -1023,9 +1026,9 @@ class NodeTableWidget(QtWidgets.QWidget):
         """
         self._node_list = nodes or []
         self.table_model.set_node_list(self._node_list)
-        self.node_name_completer.setModel(QtGui.QStringListModel(self.node_names))
-        self.node_class_completer.setModel(QtGui.QStringListModel(self.node_classes))
-        self.knob_name_filter_completer.setModel(QtGui.QStringListModel(self.knob_names))
+        self.node_name_completer.setModel(ListModel(self.node_names))
+        self.node_class_completer.setModel(ListModel(self.node_classes))
+        self.knob_name_filter_completer.setModel(ListModel(self.knob_names))
         self.table_view.resizeColumnsToContents()
 
     @QtCore.Slot(bool)
