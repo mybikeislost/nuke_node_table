@@ -871,6 +871,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.menu_bar.addAction(self.load_selected_action)
         self.load_selected_action.triggered.connect(self.load_selected)
 
+        """
         self.show_menu = KeepOpenMenu('Show')  # type: QtWidgets.QMenu
         self.menu_bar.addMenu(self.show_menu)
         self.knobs_menu = KeepOpenMenu('Knobs')  # type: QtWidgets.QMenu
@@ -891,6 +892,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.disabled_knobs_action.triggered[bool].connect(self.disabled_knobs_changed)
 
         self.nodes_classes_menu = self.show_menu.addMenu('Nodes')
+        """
 
         # Filter Widget
         self.filter_widget = QtWidgets.QWidget(self)
@@ -945,14 +947,17 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.table_view)
 
         # Filter disabled or enabled knobs:
+        """
         self.knob_states_filter_model = KnobStatesFilterModel(self)
         self.knob_states_filter_model.setSourceModel(self.table_model)
         self.knob_states_filter_model.set_disabled_knobs(True)
         self.knob_states_filter_model.set_hidden_knobs(False)
+        """
 
         # Filter by Node name
         self.node_name_filter_model = NodeNameFilterModel(self, self.filter_delimiter)
-        self.node_name_filter_model.setSourceModel(self.knob_states_filter_model)
+        # self.node_name_filter_model.setSourceModel(self.knob_states_filter_model)
+        self.node_name_filter_model.setSourceModel(self.table_model)
 
         # Filter by Node Class:
         self.node_class_filter_model = NodeClassFilterModel(self)
