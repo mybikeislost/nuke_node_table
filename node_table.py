@@ -1100,7 +1100,8 @@ class NodeTableWidget(QtWidgets.QWidget):
     def knob_name_filter(self, filter_str=None):
         if filter_str is None:
             filter_str = self.knob_name_filter_line_edit.text()
-
+        else:
+            self.knob_name_filter_line_edit.setText(filter_str)
         self._knob_name_filter = filter_str
         self.knob_name_filter_model.set_filter(filter_str)
 
