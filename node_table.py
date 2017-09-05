@@ -860,7 +860,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_widget.setLayout(self.filter_layout)
 
         # Filter by node class:
-        self.node_class_filter_label = QtWidgets.QLabel('node: class:')
+        self.node_class_filter_label = QtWidgets.QLabel('class:')
         self.filter_layout.addWidget(self.node_class_filter_label)
         self.node_class_filter_line_edit = QtWidgets.QLineEdit(self.filter_widget)
         self.node_class_completer = MultiCompleter(self.node_classes)
@@ -897,7 +897,8 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_layout.addWidget(self.knob_name_filter_line_edit)
 
         self.layout.addWidget(self.menu_bar)
-        self.menu_bar.setCornerWidget(self.filter_widget, QtCore.Qt.TopRightCorner)
+        # self.menu_bar.setCornerWidget(self.filter_widget, QtCore.Qt.TopRightCorner)
+        self.layout.addWidget(self.filter_widget)
 
         self.table_view = NodeTableView(self)
 
