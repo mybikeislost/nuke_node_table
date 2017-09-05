@@ -511,7 +511,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
         if isinstance(knob, nuke.Array_Knob):
             if isinstance(knob, nuke.AColor_Knob):
-                return knob_editors.AColorEditor(parent)
+                return knob_editors.ColorEditor(parent)
 
             elif isinstance(knob, nuke.Boolean_Knob):
             #    return QtWidgets.QCheckBox()
@@ -579,7 +579,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 super(KnobsItemDelegate, self).setModelData(editor, model, index)
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
-            elif isinstance(knob.value(), list):
+            elif isinstance(knob.value(), list) or isinstance(knob, nuke.Color_Knob):
                 data = editor.getEditorData()
 
             if data:

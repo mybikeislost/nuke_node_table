@@ -62,10 +62,10 @@ class ArrayEditor(QtWidgets.QGroupBox):
         return data
 
 
-class AColorEditor(ArrayEditor):
+class ColorEditor(ArrayEditor):
 
     def __init__(self, parent):
-        super(AColorEditor, self).__init__(parent=parent, length=4, rows=1)
+        super(ColorEditor, self).__init__(parent=parent, length=4, rows=1)
 
         # prefixes=['r', 'g', 'b', 'a']
         # for i, sp in enumerate(self.doubleSpinBoxes):
