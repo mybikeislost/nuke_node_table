@@ -661,9 +661,8 @@ class NodeTableView(QtWidgets.QTableView):
         self.setAlternatingRowColors(True)
         self.setSortingEnabled(True)
 
-        self.delegate = KnobsItemDelegate()
+        self.delegate = KnobsItemDelegate(self)
         self.setItemDelegate(self.delegate)
-
 
         self.resizeColumnsToContents()
         self.setHorizontalScrollMode(QtWidgets.QTableView.ScrollPerPixel)
