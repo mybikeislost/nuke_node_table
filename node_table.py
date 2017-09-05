@@ -13,6 +13,8 @@ if __name__ == '__main__':
 else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
 
+from NodeTable import knob_editors
+
 
 
 def get_unique(seq):
@@ -327,6 +329,16 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         knob = node.knob(self._header[col].name())
 
         if knob:
+
+            if isinstance(knob, nuke.Boolean_Knob):
+                if role == QtCore.Qt.CheckStateRole:
+                    if knob.value():
+                        return QtCore.Qt.Checked
+                    else:
+                        return QtCore.Qt.Unchecked
+                if role == QtCore.Qt.DisplayRole:
+                    return None
+
             if role == QtCore.Qt.DisplayRole:
                 try:
                     return str(knob.value())
@@ -388,10 +400,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             node = self._node_list[row]
             node_knob = node.knob(self._header[col].name())
 
+            # TODO: extend for various Knob types
             if node_knob:
-                value = self.safe_string(value)
-                # TODO: extend for various Knob types
-                edited = node_knob.setValue(value)
+                if isinstance(value, list):
+                    for i, v in enumerate(value):
+                        v = self.safe_string(v)
+                        edited = node_knob.setValueAt(v, nuke.root()['frame'].value(),  i )
+
+                else:
+                    value = self.safe_string(value)
+                    edited = node_knob.setValue(value)
+
                 if edited:
                     # noinspection PyUnresolvedReferences
                     self.dataChanged.emit(index, index)
@@ -414,8 +433,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if not knob:
             return QtCore.Qt.NoItemFlags
 
+        flags = 0
+
+        if isinstance(knob, nuke.Boolean_Knob):
+            flags |= QtCore.Qt.ItemIsUserCheckable
+
         if knob.enabled():
-            return QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
+            flags |= QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
+
+            return flags
             
         return QtCore.Qt.NoItemFlags
 
@@ -457,23 +483,155 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return node
 
 
-class KnobsItemDelegate(QtWidgets.QItemDelegate):
+class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
-    def __init__(self):
+    def __init__(self, parent):
         super(KnobsItemDelegate, self).__init__()
+        self.parent = parent
 
     def createEditor(self, parent, option, index):
+        """
 
-        return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+        Args:
+            parent (QtWidgets.QWidget): parent widget
+            option (QtWidget.QStyleOptionViewItem):
+            index (QtCore.QModelIndex): current index
+
+        Returns:
+            new editor
+        """
+        reload(knob_editors)
+        model = index.model() # type: NodeTableModel
+        row = index.row() # type: int
+        column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+
+        if isinstance(knob, nuke.Array_Knob):
+            if isinstance(knob, nuke.AColor_Knob):
+                return knob_editors.AColorEditor(parent)
+
+            elif isinstance(knob, nuke.Boolean_Knob):
+            #    return QtWidgets.QCheckBox()
+                return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+
+            elif isinstance(knob, nuke.Enumeration_Knob):
+
+                combobox = QtWidgets.QComboBox(parent)
+                for v in knob.values():
+                    combobox.addItem(v)
+                return combobox
+
+            if isinstance(knob.value(), list):
+                return knob_editors.ArrayEditor(parent, len(knob.value()))
+            else:
+                return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+        else:
+            return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+        # Array knobs:
 
     def setEditorData(self, editor, index):
-        
-        super(KnobsItemDelegate, self).setEditorData(editor, index)
+        """sets editor to knobs value
+
+        Args:
+            editor (QtWidgets.QWidget):
+            index (QtCore.QModelIndex): current index
+
+        Returns: None
+        """
+
+        model = index.model() # type: NodeTableModel
+        row = index.row() # type: int
+        column = index.column() # type: int
+
+        data = model.data(index, QtCore.Qt.EditRole)
+
+        # Array knobs:
+        if isinstance(data, list):
+            editor.setEditorData(data)
+        else:
+            super(KnobsItemDelegate, self).setEditorData(editor, index)
 
     def setModelData(self, editor, model, index):
+        """sets new value to model
 
-        super(KnobsItemDelegate, self).setModelData(editor, model, index)
+        Args:
+            editor (QtWidgets.QWidget):
+            model (QtCore.QAbstractTableModel):
+            index (QtCore.QModelIndex): current index
 
+        Returns:
+            None
+
+        """
+
+        model = index.model() # type: NodeTableModel
+        row = index.row() # type: int
+        column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+        data = None
+        # Array knobs:
+        if isinstance(knob, nuke.Array_Knob):
+            if isinstance(knob, nuke.Boolean_Knob):
+                super(KnobsItemDelegate, self).setModelData(editor, model, index)
+            elif isinstance(knob, nuke.Enumeration_Knob):
+                data = editor.currentText()
+            elif isinstance(knob.value(), list):
+                data = editor.getEditorData()
+
+            if data:
+                model.setData(index, data, QtCore.Qt.EditRole)
+            else:
+                super(KnobsItemDelegate, self).setModelData(editor, model, index)
+        else:
+            super(KnobsItemDelegate, self).setModelData(editor, model, index)
+
+    def updateEditorGeometry(self, editor, option, index):
+        """
+
+        Args:
+            editor (QtWidget.QWidget):
+            option (QtWidget.QStyleOptionViewItem):
+            index (QtCore.QModelIndex): current index
+
+        Returns:
+            None
+        """
+        model = index.model() # type: NodeTableModel
+        row = index.row() # type: int
+        column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+
+        # Array knobs:
+        if isinstance(knob, nuke.Array_Knob):
+            if isinstance(knob, nuke.Boolean_Knob):
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
+            elif isinstance(knob, nuke.Enumeration_Knob):
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
+            else:
+                rect = option.rect
+                if isinstance(knob.value(), list):
+                    if column == 0:
+                        rect.adjust(0, 0, 100, 0 )
+                    else:
+                        rect.adjust(-50 , 0, 50 , 0)
+                editor.setGeometry(rect)
+                #editor.adjustSize()
+        else:
+            super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
+
+
+    def paint(self, painter, option, index):
+
+        model = index.model() # type: NodeTableModel
+        row = index.row() # type: int
+        column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+
+        super(KnobsItemDelegate, self).paint(painter, option, index)
 
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
