@@ -2,6 +2,8 @@
 
 Spreadsheat showing and editing knobs of selected Nodes
 
+![demo](demo.gif)
+
 ### How do I get set up? ###
 
 download Qt.py and add into your .nuke folder or PYTHON_PATH:
@@ -15,7 +17,7 @@ def get_node_table_widget():
     reload(node_table)
     return node_table.NodeTableWidget(nuke.selectedNodes())
 
-#pane = nuke.getPaneFor('Properties.1')
+pane = nuke.getPaneFor('Properties.1')
 panels.registerWidgetAsPanel('get_node_table_widget', 'Node Spreadsheet',
                              'de.filmkorn.NodeSpreadsheet', True).addToPane(pane)
 
