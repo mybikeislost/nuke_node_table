@@ -10,7 +10,7 @@ download Qt.py and add into your .nuke folder or PYTHON_PATH:
 https://github.com/mottosso/Qt.py
 
 add to your menu.py:
-
+`
 from nukescripts import panels
 def get_node_table_widget():
     from NodeTable import node_table
@@ -21,5 +21,5 @@ pane = nuke.getPaneFor('Properties.1')
 panels.registerWidgetAsPanel('get_node_table_widget', 'Node Spreadsheet',
                              'de.filmkorn.NodeSpreadsheet', True).addToPane(pane)
 
-
+`
 # License: MIT
