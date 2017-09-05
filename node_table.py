@@ -357,6 +357,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     if knob.isKeyAt(nuke.frame()):
                         return QtGui.QBrush(QtGui.QColor().fromRgbF(0.165186, 0.385106, 0.723738))
                     return QtGui.QBrush(QtGui.QColor().fromRgbF(0.312839, 0.430188, 0.544651))
+
+        # no knob: grey background:
         else:
             if role == QtCore.Qt.BackgroundRole:
                 return QtGui.QBrush(QtGui.QColor().fromHsvF(0.0, 0.0, 0.3))
