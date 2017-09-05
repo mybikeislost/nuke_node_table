@@ -635,6 +635,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
+    shows properties of node if double clicked
     """
 
     def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
@@ -645,11 +646,44 @@ class NodeHeaderView(QtWidgets.QHeaderView):
             self.setClickable(True)
         # noinspection PyUnresolvedReferences
         self.sectionClicked.connect(self.select_node)
+        self.sectionDoubleClicked.connect(self.show_properties)
 
-    def select_node(self, section):
+    def get_node(self, section):
+        """returns node at section
+
+        Args:
+            section (int): current section
+
+        Returns:
+            node (nuke.Node)
+        """
         model = self.model()  # type: QtCore.QAbstractItemModel
         node = model.headerData(section, QtCore.Qt.Vertical, QtCore.Qt.UserRole)
+        return node
+
+    def select_node(self, section):
+        """selects node and zooms node graph
+
+        Args:
+            section (int):
+
+        Returns:
+            None
+        """
+        node = self.get_node(section)
         select_node(node, zoom=1)
+
+    def show_properties(self, section):
+        """opens properties bin for node at current section
+
+        Args:
+            section (int):
+
+        Returns:
+            None
+        """
+        node = self.get_node(section)
+        nuke.show(node)
 
 
 class NodeTableView(QtWidgets.QTableView):
