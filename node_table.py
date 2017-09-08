@@ -107,7 +107,7 @@ def shade_dag_nodes_enabled():
     return pref_node['ShadeDAGNodes'].value()
 
 
-def find_substring_in_dict_keys(dictionary, key_str, lower=True, first_only=False):
+def find_key_in_dict(dictionary, key_str, lower=True, first_only=False, substring = True):
     """find keys that include key
 
     TODO:
@@ -126,11 +126,20 @@ def find_substring_in_dict_keys(dictionary, key_str, lower=True, first_only=Fals
     for key in dictionary.keys():
         if lower:
             key = key.lower()
-        if key_str in key:
-            if first_only:
-                return [key]
-            else:
-                result.append(key)
+            key_str = key_str.lower()
+
+        if substring:
+            if key_str in key:
+                if first_only:
+                    return [key]
+                else:
+                    result.append(key)
+        else:
+            if key_str == key:
+                if first_only:
+                    return [key]
+                else:
+                    result.append(key)
     return result
 
 
@@ -275,9 +284,9 @@ class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
         # TODO: optimize to no run constantly
         header_name = self.sourceModel().headerData(column, QtCore.Qt.Horizontal,
                                                     QtCore.Qt.DisplayRole)
-        for row in xrange(self.sourceModel().rowCount()):
+        for row in xrange(self.sourceModel().columnCount()):
             node = self.sourceModel().headerData(row, QtCore.Qt.Vertical, QtCore.Qt.UserRole)
-            if find_substring_in_dict_keys(node.knobs(), header_name, first_only=True):
+            if find_key_in_dict(node.knobs(), header_name, first_only=True, substring=False):
                 return True
         return False
 
