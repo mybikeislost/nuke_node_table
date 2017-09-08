@@ -345,14 +345,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if not self._node_list:
             return
 
+        knob_names = []
         if len(self._node_list) < 1:
             return
         for node in self._node_list:
             if node:
                 # noinspection PyUnresolvedReferences
                 for knob_name, knob in node.knobs().iteritems():
-                    if knob_name not in [knob_header.name() for knob_header in self._header]:
+                    if knob_name not in knob_names:
                         self._header.append(knob)
+                        knob_names.append(knob.name())
+
         self._header = sorted(self._header, key=lambda s: s.name().lower())
 
     def data(self, index, role):
