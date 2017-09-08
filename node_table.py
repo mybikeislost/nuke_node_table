@@ -841,6 +841,9 @@ class NodeTableView(QtWidgets.QTableView):
         if event.button() == QtCore.Qt.LeftButton:
             index = self.indexAt(event.pos())
             self.edit(index)
+        if event.button() == QtCore.Qt.RightButton:
+            # TODO: implement right click options
+            pass
 
         super(NodeTableView, self).mouseReleaseEvent(event)
 
