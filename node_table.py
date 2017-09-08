@@ -15,6 +15,22 @@ else:
 
 from NodeTable import knob_editors
 
+def get_palette(widget = None):
+    app = QtWidgets.QApplication.instance() #tpye: QtWidget.QApplication
+    return app.palette(widget)
+
+def scalar(tpl, sc):
+    """multiply each value in tuple by scalar
+
+    Args:
+        tpl (tuple):
+        scalar (float):
+
+    Returns (touple):
+        tpl * sc
+    """
+
+    return tuple([sc * t for t in tpl])
 
 
 def get_unique(seq):
@@ -82,6 +98,15 @@ def select_node(node, zoom = 1):
             nuke.zoom(zoom, [node.xpos(), node.ypos()])
 
 
+def shade_dag_nodes_enabled():
+    """check weather shadows in dag are enabled in settings
+
+    Returns (boolean):
+    """
+    pref_node = nuke.toNode("preferences")
+    return pref_node['ShadeDAGNodes'].value()
+
+
 def find_substring_in_dict_keys(dictionary, key_str, lower=True, first_only=False):
     """find keys that include key
 
@@ -107,6 +132,32 @@ def find_substring_in_dict_keys(dictionary, key_str, lower=True, first_only=Fals
             else:
                 result.append(key)
     return result
+
+
+def get_node_tile_color(node):
+    """return the nodes tile color or default node color if not set
+
+    Args:
+        node (nuke.Node): node
+
+    Returns:
+        list: colors in rgb
+    """
+    color = None
+    tile_color_knob = node.knob('tile_color')
+    if tile_color_knob:
+        color = tile_color_knob.value()
+    if not color:
+        color = nuke.defaultNodeColor(node.Class())
+
+    if color:
+        return knob_editors.to_rgb(color)
+
+def get_node_font_color(node):
+    color = None
+    color_knob = node.knob('note_font_color')
+    if color_knob:
+        return knob_editors.to_rgb(color_knob.value())
 
 
 class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
@@ -239,6 +290,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         self._node_list = node_list  # type: list
         self._header = []
 
+        self.palette = get_palette() # type: QtGui.QPalette
+
         if node_list:
             self.setup_model_data()
 
@@ -359,9 +412,25 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return QtGui.QBrush(QtGui.QColor().fromRgbF(0.312839, 0.430188, 0.544651))
 
         # no knob: grey background:
-        else:
-            if role == QtCore.Qt.BackgroundRole:
-                return QtGui.QBrush(QtGui.QColor().fromHsvF(0.0, 0.0, 0.3))
+
+        if role == QtCore.Qt.BackgroundRole:
+            color = get_node_tile_color(node)
+            if not row % 2:
+                base = self.palette.base().color()  # type: QtGui.QColor
+            else:
+                base = self.palette.alternateBase().color()  # type: QtGui.QColor
+            if not knob:
+                mix = .05  # mix with grey
+            else:
+                mix = .25
+
+            base_color = base.getRgbF()[:3]
+
+            base_color_blend = scalar(base_color, 1.0 - mix)
+            color_blend = scalar(color, mix)
+            color = [sum(x) for x in zip(base_color_blend, color_blend)]
+            return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
+
 
         return None
 
@@ -483,6 +552,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return node.name()
                 elif role == QtCore.Qt.UserRole:
                     return node
+                elif role==QtCore.Qt.BackgroundRole:
+                    return QtGui.QBrush(QtGui.QColor.fromRgbF(*get_node_tile_color(node)))
+                elif role==QtCore.Qt.ForegroundRole:
+                    return QtGui.QPen(QtGui.QColor.fromRgbF(*get_node_font_color(node)))
 
 
 class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
@@ -647,8 +720,44 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         elif "PySide" in __binding__:
             self.setClickable(True)
         # noinspection PyUnresolvedReferences
+
+        self.shade_dag_nodes_enabled = shade_dag_nodes_enabled()
+
         self.sectionClicked.connect(self.select_node)
         self.sectionDoubleClicked.connect(self.show_properties)
+
+    def paintSection(self, painter, rect, index):
+        """
+
+        Args:
+            painter (QtGui.QPainter):
+            rect (QtCore.QRect):
+            index:
+
+        Returns: None
+        """
+        painter.save()
+        QtWidgets.QHeaderView.paintSection(self, painter, rect, index)
+        painter.restore()
+
+        bg_brush = self.model().headerData( index, QtCore.Qt.Vertical,QtCore.Qt.BackgroundRole) # type: QtGui.QBrush
+        fg_pen = self.model().headerData(index, QtCore.Qt.Vertical, QtCore.Qt.ForegroundRole) # type: QtGui.QPen
+
+        if self.shade_dag_nodes_enabled:
+            gradient = QtGui.QLinearGradient(rect.topLeft(), rect.bottomLeft())
+            gradient.setColorAt(0, bg_brush.color())
+            gradient.setColorAt(1, QtGui.QColor.fromRgbF(*scalar( bg_brush.color().getRgbF()[:3], 0.6)))
+            painter.fillRect(rect, gradient)
+        else:
+            painter.fillRect(rect, bg_brush)
+
+        rect_adj = rect
+        rect_adj.adjust(-1, -1, -1, -1)
+        painter.setPen(fg_pen)
+        painter.drawText(rect, QtCore.Qt.AlignCenter, self.model().headerData( index, QtCore.Qt.Vertical,QtCore.Qt.DisplayRole))
+        painter.setPen(QtGui.QPen(QtGui.QColor.fromRgbF(0.0, 0.0, 0.0)))
+        painter.drawRect(rect_adj)
+
 
     def get_node(self, section):
         """returns node at section
