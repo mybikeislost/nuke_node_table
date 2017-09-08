@@ -1,4 +1,9 @@
-from PySide2 import QtWidgets, QtGui, QtCore
+if __name__ == '__main__':
+    from PySide2 import QtCore, QtGui, QtWidgets
+    __binding__ = 'PySide2'
+else:
+    from Qt import QtCore, QtGui, QtWidgets, __binding__
+
 import nuke
 
 def to_hex(rgb):
