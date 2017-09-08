@@ -284,7 +284,7 @@ class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
         # TODO: optimize to no run constantly
         header_name = self.sourceModel().headerData(column, QtCore.Qt.Horizontal,
                                                     QtCore.Qt.DisplayRole)
-        for row in xrange(self.sourceModel().columnCount()):
+        for row in xrange(self.sourceModel().rowCount()):
             node = self.sourceModel().headerData(row, QtCore.Qt.Vertical, QtCore.Qt.UserRole)
             if find_key_in_dict(node.knobs(), header_name, first_only=True, substring=False):
                 return True
