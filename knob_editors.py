@@ -39,7 +39,7 @@ class ArrayEditor(QtWidgets.QGroupBox):
 
         self.layout = QtWidgets.QGridLayout(self)
         self.setLayout(self.layout)
-        self.layout.setMargin(0)
+
         self.layout.setContentsMargins(0,0,0,0)
         self.setContentsMargins(4, 4, 4, 4)
 
