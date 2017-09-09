@@ -609,7 +609,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                     combobox.addItem(v)
                 return combobox
 
-            if isinstance(knob.value(), list):
+            if isinstance(knob.value(), (list, tuple)):
                 return knob_editors.ArrayEditor(parent, len(knob.value()))
             else:
                 return super(KnobsItemDelegate, self).createEditor(parent, option, index)
@@ -634,7 +634,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         data = model.data(index, QtCore.Qt.EditRole)
 
         # Array knobs:
-        if isinstance(data, list):
+        if isinstance(data, (list, tuple)):
             editor.setEditorData(data)
         else:
             super(KnobsItemDelegate, self).setEditorData(editor, index)
@@ -664,7 +664,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 super(KnobsItemDelegate, self).setModelData(editor, model, index)
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
-            elif isinstance(knob.value(), list) or isinstance(knob, nuke.Color_Knob):
+            elif isinstance(knob.value(), (list, tuple, nuke.Color_Knob)):
                 data = editor.getEditorData()
 
             if data:
@@ -699,7 +699,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
             else:
                 rect = option.rect
-                if isinstance(knob.value(), list):
+                if isinstance(knob.value(), (list, tuple)):
                     if column == 0:
                         rect.adjust(0, 0, 100, 0 )
                     else:
