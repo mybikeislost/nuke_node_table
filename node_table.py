@@ -485,7 +485,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
             # TODO: extend for various Knob types
             if node_knob:
-                if isinstance(value, list):
+                if isinstance(value, (list, tuple)):
                     for i, v in enumerate(value):
                         v = self.safe_string(v)
                         edited = node_knob.setValueAt(v, nuke.root()['frame'].value(),  i )
