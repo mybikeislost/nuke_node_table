@@ -403,7 +403,19 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                         return QtCore.Qt.Unchecked
                 if role == QtCore.Qt.DisplayRole:
                     return None
+            elif isinstance(knob, nuke.IArray_Knob):
+                if (role == QtCore.Qt.DisplayRole) or (role == QtCore.Qt.EditRole):
+                    # dim = knob.dimensions()
+                    width = knob.width()
+                    height = knob.height()
+                    value = [knob.value(i/ width , i % width  ) for i in range(width * height )]
+                    # return value
+                    if role == QtCore.Qt.DisplayRole:
+                        return str(value)
+                    else:
+                        return value
 
+            # all other knobs:
             if role == QtCore.Qt.DisplayRole:
                 try:
                     return str(knob.value())
@@ -589,12 +601,13 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         """
         reload(knob_editors)
         model = index.model() # type: NodeTableModel
-        row = index.row() # type: int
-        column = index.column() # type: int
+        # row = index.row() # type: int
+        # column = index.column() # type: int
 
         knob = model.data(index, QtCore.Qt.UserRole)
 
         if isinstance(knob, nuke.Array_Knob):
+            rows = None
             if isinstance(knob, nuke.AColor_Knob):
                 return knob_editors.ColorEditor(parent)
 
@@ -609,8 +622,11 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                     combobox.addItem(v)
                 return combobox
 
-            if isinstance(knob.value(), (list, tuple)):
-                return knob_editors.ArrayEditor(parent, len(knob.value()))
+            elif isinstance(knob, nuke.IArray_Knob):
+                rows = knob.height()
+
+            if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
+                return knob_editors.ArrayEditor(parent, len(model.data(index, QtCore.Qt.EditRole)), rows)
             else:
                 return super(KnobsItemDelegate, self).createEditor(parent, option, index)
         else:
@@ -699,11 +715,14 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
             else:
                 rect = option.rect
-                if isinstance(knob.value(), (list, tuple)):
+                if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
                     if column == 0:
                         rect.adjust(0, 0, 100, 0 )
                     else:
                         rect.adjust(-50 , 0, 50 , 0)
+
+                    if isinstance(knob, nuke.IArray_Knob):
+                        rect.adjust(0, - knob.height() * 20, 0, knob.height() * 20 )
                 editor.setGeometry(rect)
                 #editor.adjustSize()
         else:
