@@ -6,27 +6,7 @@ else:
 
 import nuke
 
-def to_hex(rgb):
-    return  int('%02x%02x%02x%02x' % (rgb[0] * 255,
-                                              rgb[1] * 255,
-                                              rgb[2] * 255, 1), 16)
-
-def to_rgb(hex):
-    """hex to rgb
-    Author: Ivan Busquets
-
-    Args:
-        hex: color in hex format
-
-    Returns (tuple): color in 0-1 range
-
-    """
-
-    r = (0xFF & hex>> 24) / 255.0
-    g = (0xFF & hex >> 16) / 255.0
-    b = (0xFF & hex >> 8) / 255.0
-
-    return r,g,b
+from NodeTable import nuke_utils
 
 
 class ArrayEditor(QtWidgets.QGroupBox):
@@ -84,6 +64,6 @@ class ColorEditor(ArrayEditor):
 
     def get_color(self):
         initial_color = self.getEditorData()
-        new_color = to_rgb(nuke.getColor(to_hex(initial_color)))
+        new_color = nuke_utils.to_rgb(nuke.getColor(nuke_utils.to_hex(initial_color)))
         self.setEditorData(new_color)
 
