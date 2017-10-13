@@ -1,5 +1,6 @@
 # built ins
 import sys
+import nuke
 
 # external
 if __name__ == '__main__':
@@ -7,8 +8,6 @@ if __name__ == '__main__':
     __binding__ = 'PySide2'
 else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
-
-import nuke
 
 # internal
 from NodeTable import knob_editors, nuke_utils, model
@@ -32,7 +31,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             new editor
         """
         reload(knob_editors)
-        model = index.model() # type: NodeTableModel
+        model = index.model() # type: model.NodeTableModel
         # row = index.row() # type: int
         # column = index.column() # type: int
 
@@ -55,7 +54,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 return combobox
 
             elif isinstance(knob, nuke.IArray_Knob):
-                rows = knob.height()
+                rows = knob.height()  # type: int
 
             if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
                 return knob_editors.ArrayEditor(parent, len(model.data(index, QtCore.Qt.EditRole)), rows)
@@ -75,7 +74,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         Returns: None
         """
 
-        model = index.model() # type: NodeTableModel
+        model = index.model() # type: model.NodeTableModel
         row = index.row() # type: int
         column = index.column() # type: int
 
@@ -100,7 +99,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
         """
 
-        model = index.model() # type: NodeTableModel
+        model = index.model() # type: model.NodeTableModel
         row = index.row() # type: int
         column = index.column() # type: int
 
@@ -112,7 +111,8 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 super(KnobsItemDelegate, self).setModelData(editor, model, index)
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
-            elif isinstance(knob.value(), (list, tuple, nuke.Color_Knob)):
+            elif isinstance(knob.value(), (list, tuple)) \
+                or isinstance(knob, (nuke.Color_Knob, nuke.IArray_Knob)):
                 data = editor.getEditorData()
 
             if data:
@@ -133,7 +133,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         Returns:
             None
         """
-        model = index.model() # type: NodeTableModel
+        model = index.model() # type: model.NodeTableModel
         row = index.row() # type: int
         column = index.column() # type: int
 
@@ -154,7 +154,8 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                         rect.adjust(-50 , 0, 50 , 0)
 
                     if isinstance(knob, nuke.IArray_Knob):
-                        rect.adjust(0, - knob.height() * 20, 0, knob.height() * 20 )
+                        rect.setWidth(80 * knob.width())
+                        rect.setHeight(28 * knob.height())
                 editor.setGeometry(rect)
                 #editor.adjustSize()
         else:
@@ -163,7 +164,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
 
-        model = index.model() # type: NodeTableModel
+        model = index.model() # type: model.NodeTableModel
         row = index.row() # type: int
         column = index.column() # type: int
 

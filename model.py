@@ -404,15 +404,14 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             row = index.row()
             col = index.column()
             node = self._node_list[row]
-            node_knob = node.knob(self._header[col].name())
+            knob_name = self.headerData(col, QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole)
+            node_knob = node.knob(knob_name)
 
             # TODO: extend for various Knob types
             if node_knob:
                 if isinstance(value, (list, tuple)):
                     for i, v in enumerate(value):
-                        v = self.safe_string(v)
                         edited = node_knob.setValueAt(v, nuke.root()['frame'].value(), i)
-
                 else:
                     value = self.safe_string(value)
                     edited = node_knob.setValue(value)

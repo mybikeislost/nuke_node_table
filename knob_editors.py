@@ -1,5 +1,5 @@
 if __name__ == '__main__':
-    from PySide2 import QtCore, QtGui, QtWidgets
+    from PyQt5 import QtCore, QtGui, QtWidgets
     __binding__ = 'PySide2'
 else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
@@ -32,7 +32,9 @@ class ArrayEditor(QtWidgets.QGroupBox):
             sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
             sp.setDecimals(8)
             sp.setRange(-9999999, 99999999)
-            self.layout.addWidget(sp,  int( ((i) / float(self.length)  )*self.rows) , i )
+            row = i % rows
+            col = int( ((i) / float(self.length)  )*self.rows)
+            self.layout.addWidget(sp, col , row )
             self.doubleSpinBoxes.append(sp)
 
         self.adjustSize()
