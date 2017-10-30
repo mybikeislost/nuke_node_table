@@ -263,7 +263,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         for node in self._node_list:
             if node:
                 # noinspection PyUnresolvedReferences
-                for knob_name, knob in node.knobs().iteritems():
+                for knob_name, knob in node.knobs().items():
                     if knob_name not in knob_names:
                         self._header.append(knob)
                         knob_names.append(knob.name())
