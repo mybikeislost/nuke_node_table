@@ -177,8 +177,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 #editor.adjustSize()
         else:
             super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
-
-
+    """
     def paint(self, painter, option, index):
 
         model = index.model() # type: model.NodeTableModel
@@ -188,7 +187,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         knob = model.data(index, QtCore.Qt.UserRole)
 
         super(KnobsItemDelegate, self).paint(painter, option, index)
-
+    """
 
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
