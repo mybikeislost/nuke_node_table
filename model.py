@@ -366,9 +366,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             else:
                 base = self.palette.alternateBase().color()  # type: QtGui.QColor
             if not knob:
-                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
-            else:
                 mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
+            else:
+                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
 
             base_color = base.getRgbF()[:3]
 
