@@ -415,22 +415,22 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             col = index.column()
             node = self._node_list[row]
             knob_name = self.headerData(col, QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole)
-            node_knob = node.knob(knob_name)
+            knob = node.knob(knob_name)
 
             # TODO: extend for various Knob types
-            if node_knob:
+            if knob:
                 edited = False
                 if isinstance(value, (list, tuple)):
 
                     for i, v in enumerate(value):
                         frame = nuke.root()['frame'].value()
-                        if node_knob.valueAt(frame, i) == v:
+                        if knob.valueAt(frame, i) == v:
                             edited = True
                         else:
-                            edited = node_knob.setValueAt(v, frame, i)
+                            edited = knob.setValueAt(v, frame, i)
                 else:
                     value = self.safe_string(value)
-                    edited = node_knob.setValue(value) if node_knob.value() != value else True
+                    edited = knob.setValue(value) if knob.value() != value else True
 
                 if edited:
                     # noinspection PyUnresolvedReferences
