@@ -8,6 +8,7 @@ import nuke
 
 
 from NodeTable import nuke_utils
+from NodeTable import constants
 
 
 def scalar(tpl, sc):
@@ -355,10 +356,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 if knob.isAnimated():
                     # noinspection PyArgumentList
                     if knob.isKeyAt(nuke.frame()):
-                        return QtGui.QBrush(QtGui.QColor().fromRgbF(0.165186, 0.385106, 0.723738))
-                    return QtGui.QBrush(QtGui.QColor().fromRgbF(0.312839, 0.430188, 0.544651))
-
-        # no knob: grey background:
+                        return QtGui.QBrush(QtGui.QColor().fromRgbF(constants.KNOB_HAS_KEY_AT_COLOR))
+                    return QtGui.QBrush(QtGui.QColor().fromRgbF(constants.KNOB_ANIMTED_COLOR))
 
         if role == QtCore.Qt.BackgroundRole:
             color = nuke_utils.get_node_tile_color(node)
@@ -367,9 +366,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             else:
                 base = self.palette.alternateBase().color()  # type: QtGui.QColor
             if not knob:
-                mix = .08  # mix with grey
+                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
             else:
-                mix = .3
+                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
 
             base_color = base.getRgbF()[:3]
 
