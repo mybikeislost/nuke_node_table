@@ -1,5 +1,5 @@
 if __name__ == '__main__':
-    from PyQt5 import QtCore, QtGui, QtWidgets
+    from Qt import QtCore, QtGui, QtWidgets
     __binding__ = 'PySide2'
 else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
