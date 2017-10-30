@@ -326,6 +326,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                         return str(value)
                     else:
                         return value
+            elif isinstance(knob, nuke.Transform2d_Knob):
+                if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+                    matrix_list =[]
+                    matrix = knob.value()
+                    for i in range(len(matrix)):
+                        matrix_list.append(matrix[i])
+
+                    if role == QtCore.Qt.DisplayRole:
+                        return str(matrix_list)
+                    else:
+                        return matrix_list
 
             # all other knobs:
             if role == QtCore.Qt.DisplayRole:

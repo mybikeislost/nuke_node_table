@@ -1,6 +1,7 @@
 # built ins
 import sys
 import nuke
+import math
 
 # external
 if __name__ == '__main__':
@@ -37,8 +38,8 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
         knob = model.data(index, QtCore.Qt.UserRole)
 
-        if isinstance(knob, nuke.Array_Knob):
-            rows = None
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+            rows = 1
             if isinstance(knob, nuke.AColor_Knob):
                 return knob_editors.ColorEditor(parent)
 
@@ -55,6 +56,9 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
             elif isinstance(knob, nuke.IArray_Knob):
                 rows = knob.height()  # type: int
+
+            elif isinstance(knob, nuke.Transform2d_Knob):
+                rows = math.sqrt(len(model.data(index, QtCore.Qt.EditRole)))
 
             if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
                 return knob_editors.ArrayEditor(parent, len(model.data(index, QtCore.Qt.EditRole)), rows)
@@ -106,12 +110,15 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         knob = model.data(index, QtCore.Qt.UserRole)
         data = None
         # Array knobs:
-        if isinstance(knob, nuke.Array_Knob):
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+
             if isinstance(knob, nuke.Boolean_Knob):
                 super(KnobsItemDelegate, self).setModelData(editor, model, index)
+
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
-            elif isinstance(knob.value(), (list, tuple)) \
+
+            elif isinstance(data, (list, tuple)) \
                 or isinstance(knob, (nuke.Color_Knob, nuke.IArray_Knob)):
                 data = editor.getEditorData()
 
@@ -138,24 +145,34 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         column = index.column() # type: int
 
         knob = model.data(index, QtCore.Qt.UserRole)
+        value = model.data(index, QtCore.Qt.EditRole)
 
         # Array knobs:
-        if isinstance(knob, nuke.Array_Knob):
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
             if isinstance(knob, nuke.Boolean_Knob):
                 super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
             elif isinstance(knob, nuke.Enumeration_Knob):
                 super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
             else:
                 rect = option.rect
-                if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
-                    if column == 0:
-                        rect.adjust(0, 0, 100, 0 )
-                    else:
-                        rect.adjust(-50 , 0, 50 , 0)
+                if isinstance(value, (list, tuple)):
 
                     if isinstance(knob, nuke.IArray_Knob):
                         rect.setWidth(80 * knob.width())
                         rect.setHeight(28 * knob.height())
+
+                    elif isinstance(knob, nuke.Transform2d_Knob):
+                        root = math.sqrt(len(value))
+                        width = 80 * root
+                        rect.setWidth(width)
+                        rect.setHeight(28 * root)
+
+                    else:
+                        if column == 0:
+                            rect.adjust(0, 0, 100, 0)
+                        else:
+                            rect.adjust(-50, 0, 50, 0)
+
                 editor.setGeometry(rect)
                 #editor.adjustSize()
         else:
