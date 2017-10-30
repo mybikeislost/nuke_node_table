@@ -462,7 +462,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             flags |= QtCore.Qt.ItemIsUserCheckable
 
         if knob.enabled():
-            flags |= QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
+            flags |= QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
+
+            if not isinstance(knob, tuple(constants.READ_ONLY_KNOBS)):
+                flags |= QtCore.Qt.ItemIsEnabled
 
             return flags
 
