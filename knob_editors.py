@@ -32,8 +32,8 @@ class ArrayEditor(QtWidgets.QGroupBox):
             sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
             sp.setDecimals(8)
             sp.setRange(-9999999, 99999999)
-            row = i % rows
-            col = int( ((i) / float(self.length)  )*self.rows)
+            col = i % rows
+            row = int( float(i) / self.rows)
             self.layout.addWidget(sp, col , row )
             self.doubleSpinBoxes.append(sp)
 
