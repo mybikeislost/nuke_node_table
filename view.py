@@ -109,6 +109,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
         knob = model.data(index, QtCore.Qt.UserRole)
         data = None
+
         # Array knobs:
         if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
 
@@ -118,8 +119,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
 
-            elif isinstance(data, (list, tuple)) \
-                or isinstance(knob, (nuke.Color_Knob, nuke.IArray_Knob)):
+            elif isinstance(editor, knob_editors.ArrayEditor):
                 data = editor.getEditorData()
 
             if data:
