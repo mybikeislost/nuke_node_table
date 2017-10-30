@@ -409,17 +409,25 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
             # TODO: extend for various Knob types
             if node_knob:
+                edited = False
                 if isinstance(value, (list, tuple)):
+
                     for i, v in enumerate(value):
-                        edited = node_knob.setValueAt(v, nuke.root()['frame'].value(), i)
+                        frame = nuke.root()['frame'].value()
+                        if node_knob.valueAt(frame, i) == v:
+                            edited = True
+                        else:
+                            edited = node_knob.setValueAt(v, frame, i)
                 else:
                     value = self.safe_string(value)
-                    edited = node_knob.setValue(value)
+                    edited = node_knob.setValue(value) if node_knob.value() != value else True
 
                 if edited:
                     # noinspection PyUnresolvedReferences
                     self.dataChanged.emit(index, index)
                     return True
+                else:
+                    print 'could not edit knob %s ' % knob_name
         return False
 
     def flags(self, index):
