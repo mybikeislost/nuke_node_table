@@ -28,8 +28,8 @@ def to_hex(rgb):
         str: color in hex notation
     """
     return  int('%02x%02x%02x%02x' % (rgb[0] * 255,
-                                              rgb[1] * 255,
-                                              rgb[2] * 255, 1), 16)
+                                      rgb[1] * 255,
+                                      rgb[2] * 255, 1), 16)
 
 
 def to_rgb(hex):
@@ -46,8 +46,9 @@ def to_rgb(hex):
     r = (0xFF & hex>> 24) / 255.0
     g = (0xFF & hex >> 16) / 255.0
     b = (0xFF & hex >> 8) / 255.0
+    a = (0xFF & hex >> 1) / 255.0
 
-    return r,g,b
+    return r, g, b, a
 
 
 def get_unique(seq):
