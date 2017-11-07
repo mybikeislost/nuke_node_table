@@ -11,7 +11,7 @@ else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
 
 # internal
-from NodeTable import knob_editors, nuke_utils, model
+from NodeTable import knob_editors, nuke_utils, model, constants
 
 
 class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
@@ -158,14 +158,14 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 if isinstance(value, (list, tuple)):
 
                     if isinstance(knob, nuke.IArray_Knob):
-                        rect.setWidth(80 * knob.width())
-                        rect.setHeight(28 * knob.height())
+                        rect.setWidth(constants.EDITOR_CELL_WIDTH * knob.width())
+                        rect.setHeight(constants.EDITOR_CELL_HEIGHT * knob.height())
 
                     elif isinstance(knob, nuke.Transform2d_Knob):
                         root = math.sqrt(len(value))
-                        width = 80 * root
+                        width = constants.EDITOR_CELL_WIDTH * root
                         rect.setWidth(width)
-                        rect.setHeight(28 * root)
+                        rect.setHeight(constants.EDITOR_CELL_HEIGHT * root)
 
                     else:
                         if column == 0:

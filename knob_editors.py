@@ -7,6 +7,7 @@ else:
 import nuke
 
 from NodeTable import nuke_utils
+from NodeTable import constants
 
 
 class ArrayEditor(QtWidgets.QGroupBox):
@@ -30,7 +31,7 @@ class ArrayEditor(QtWidgets.QGroupBox):
             sp = QtWidgets.QDoubleSpinBox(self)
             sp.setMinimumHeight(22)
             sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-            sp.setDecimals(8)
+            sp.setDecimals(constants.EDITOR_DECIMALS)
             sp.setRange(-9999999, 99999999)
             col = i % rows
             row = int( float(i) / self.rows)
