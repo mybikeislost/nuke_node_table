@@ -89,7 +89,7 @@ def get_node_font_color(node):
     color = None
     color_knob = node.knob('note_font_color')
     if color_knob:
-        return to_rgb(color_knob.value())
+        return to_rgb(color_knob.value())[:3]
 
 
 def get_node_classes(no_ext=True):
