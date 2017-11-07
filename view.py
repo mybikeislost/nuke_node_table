@@ -438,6 +438,8 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.menu_bar = QtWidgets.QMenuBar(self)
+        # show menubar in parents window for osx and some linux dists
+        self.menu_bar.setNativeMenuBar(False)
 
         self.load_selected_action = QtWidgets.QAction('Load selected Nodes', self.menu_bar)
         self.menu_bar.addAction(self.load_selected_action)
