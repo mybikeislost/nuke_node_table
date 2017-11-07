@@ -1,5 +1,7 @@
 import nuke
 
+FILTER_DELIMITER = ','
+
 # Knob classes that can't be edited directly
 READ_ONLY_KNOBS = [nuke.Transform2d_Knob]
 

@@ -416,7 +416,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.setWindowTitle('Node spreadsheet')
 
         # Variables:
-        self.filter_delimiter = ','
         # Initial list of classes, will overwrite this with given nodes classes
         self._node_classes = sorted(nuke_utils.get_node_classes(no_ext=True),
                                     key=lambda s: s.lower())
@@ -527,7 +526,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.hidden_knobs = False
 
         # Filter by Node name
-        self.node_name_filter_model = model.NodeNameFilterModel(self, self.filter_delimiter)
+        self.node_name_filter_model = model.NodeNameFilterModel(self)
         self.node_name_filter_model.setSourceModel(self.knob_states_filter_model)
         # self.node_name_filter_model.setSourceModel(self.table_model)
 
@@ -604,10 +603,11 @@ class NodeTableWidget(QtWidgets.QWidget):
         """Sets nodes and updates models
         """
         self._node_list = nodes or []
-        self.table_model.set_node_list(self._node_list)
-        self.node_name_completer.setModel(model.ListModel(self.node_names))
-        self.node_class_completer.setModel(model.ListModel(self.node_classes))
-        self.knob_name_filter_completer.setModel(model.ListModel(self.knob_names))
+        self.table_model.node_list = self._node_list
+
+        self.node_name_completer.setModel(model.StringListModel(self.node_names))
+        self.node_class_completer.setModel(model.StringListModel(self.node_classes))
+        self.knob_name_filter_completer.setModel(model.StringListModel(self.knob_names))
         self.table_view.resizeColumnsToContents()
 
     @QtCore.Slot(bool)
@@ -625,7 +625,7 @@ class NodeTableWidget(QtWidgets.QWidget):
     def hidden_knobs(self, checked):
 
         self._hidden_knobs = checked
-        self.knob_states_filter_model.set_hidden_knobs(checked)
+        self.knob_states_filter_model.hidden_knobs = checked
         self.table_view.resizeColumnsToContents()
         self.hidden_knobs_action.setChecked(checked)
 
@@ -643,7 +643,7 @@ class NodeTableWidget(QtWidgets.QWidget):
     @disabled_knobs.setter
     def disabled_knobs(self, checked=None):
         self._disabled_knobs = checked
-        self.knob_states_filter_model.set_disabled_knobs(checked)
+        self.knob_states_filter_model.disabled_knobs = checked
         self.table_view.resizeColumnsToContents()
         self.disabled_knobs_action.setChecked(checked)
         self.update_all_knob_states_action()
@@ -687,7 +687,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         else:
             self.knob_name_filter_line_edit.setText(filter_str)
         self._knob_name_filter = filter_str
-        self.knob_name_filter_model.set_filter(filter_str)
+        self.knob_name_filter_model.set_filter_str(filter_str)
 
     @property
     def node_name_filter(self):
@@ -696,7 +696,7 @@ class NodeTableWidget(QtWidgets.QWidget):
     @node_name_filter.setter
     def node_name_filter(self, node_names=None):
         self._node_name_filter = node_names
-        self.node_name_filter_model.set_filter(node_names)
+        self.node_name_filter_model.set_filter_str(node_names)
         self.empty_column_filter_model.invalidateFilter()
 
     @QtCore.Slot(str)
@@ -713,7 +713,7 @@ class NodeTableWidget(QtWidgets.QWidget):
     def node_class_filter(self, node_classes=None):
         # TODO: extract to function and create unit test
         self._node_class_filter = node_classes
-        self.node_class_filter_model.set_filter(node_classes)
+        self.node_class_filter_model.set_filter_str(node_classes)
         self.empty_column_filter_model.invalidateFilter()
 
     @QtCore.Slot(str)
