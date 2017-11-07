@@ -82,7 +82,7 @@ def get_node_tile_color(node):
         color = nuke.defaultNodeColor(node.Class())
 
     if color:
-        return to_rgb(color)
+        return to_rgb(color)[:3]
 
 
 def get_node_font_color(node):
