@@ -11,6 +11,8 @@ https://github.com/mottosso/Qt.py
 
 add to your menu.py:
 ```
+from nukesripts import panels
+
 def get_node_table_widget():
     from NodeTable import view as node_table_view
     reload(node_table_view)
