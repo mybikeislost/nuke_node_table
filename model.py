@@ -27,7 +27,7 @@ def scalar(tpl, multiplier):
         tpl (tuple):
         scalar (float):
 
-    Returns (touple):
+    Returns (tuple):
         tpl * sc
     """
 
@@ -493,7 +493,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         if not self._node_list:
             self.setup_model_data()
-            return None
+            return
 
         node = self._node_list[row]
 
@@ -502,10 +502,41 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             self._node_list.remove(node)
             self.setup_model_data()
             self.endResetModel()
-            return None
+            return
 
         knob = node.knob(self._header[col].name())
 
+        if role == QtCore.Qt.BackgroundRole:
+            if knob and knob.isAnimated():
+                # noinspection PyArgumentList
+                if knob.isKeyAt(nuke.frame()):
+                    return QtGui.QBrush(QtGui.QColor().fromRgbF(
+                        *constants.KNOB_HAS_KEY_AT_COLOR))
+                return QtGui.QBrush(QtGui.QColor().fromRgbF(
+                    *constants.KNOB_ANIMATED_COLOR))
+
+            else:
+                color = nuke_utils.get_node_tile_color(node)
+                if not row % 2:
+                    base = self.palette.base().color()  # type: QtGui.QColor
+                else:
+                    base = self.palette.alternateBase().color()
+
+                if knob:
+                    mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
+                else:
+                    mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
+
+                base_color = base.getRgbF()[:3]
+
+                # Blend Nodes color with base color
+                base_color_blend = scalar(base_color, 1.0 - mix)
+                color_blend = scalar(color, mix)
+                color = [sum(x) for x in zip(base_color_blend, color_blend)]
+                return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
+
+        # Return early if node has no knob at current index.
+        # Further data roles require a knob.
         if not knob:
             return
 
@@ -540,51 +571,22 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return str(matrix_list)
                 else:
                     return matrix_list
-
-        # all other knobs:
         if role == QtCore.Qt.DisplayRole:
             try:
                 return str(knob.value())
             except Exception as exception:
                 LOG.warn('Could not get value from knob %s on node %s',
-                          knob.name(),
-                          node.name(),
-                          exc_info=True)
+                         knob.name(),
+                         node.name(),
+                         exc_info=True)
+            # all other knobs:
+
 
         elif role == QtCore.Qt.EditRole:
             return knob.value()
 
         elif role == QtCore.Qt.UserRole:
             return knob
-
-        elif role == QtCore.Qt.BackgroundRole:
-            if knob.isAnimated():
-                # noinspection PyArgumentList
-                if knob.isKeyAt(nuke.frame()):
-                    return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                        *constants.KNOB_HAS_KEY_AT_COLOR))
-                return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                    *constants.KNOB_ANIMATED_COLOR))
-
-        if role == QtCore.Qt.BackgroundRole:
-            color = nuke_utils.get_node_tile_color(node)
-            if not row % 2:
-                base = self.palette.base().color()  # type: QtGui.QColor
-            else:
-                base = self.palette.alternateBase().color()
-            if not knob:
-                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
-            else:
-                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
-
-            base_color = base.getRgbF()[:3]
-
-            base_color_blend = scalar(base_color, 1.0 - mix)
-            color_blend = scalar(color, mix)
-            color = [sum(x) for x in zip(base_color_blend, color_blend)]
-            return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
-
-
 
     @staticmethod
     def safe_string(string):
