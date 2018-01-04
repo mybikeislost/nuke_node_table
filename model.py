@@ -564,7 +564,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return QtGui.QBrush(QtGui.QColor().fromRgbF(
                         constants.KNOB_HAS_KEY_AT_COLOR))
                 return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                    constants.KNOB_ANIMTED_COLOR))
+                    constants.KNOB_ANIMATED_COLOR))
 
         if role == QtCore.Qt.BackgroundRole:
             color = nuke_utils.get_node_tile_color(node)

@@ -7,7 +7,7 @@ READ_ONLY_KNOBS = [nuke.Transform2d_Knob]
 
 # Colors
 # knob is animated
-KNOB_ANIMTED_COLOR = (0.312839, 0.430188, 0.544651)
+KNOB_ANIMATED_COLOR = (0.312839, 0.430188, 0.544651)
 # knob has key at current frame
 KNOB_HAS_KEY_AT_COLOR = (0.165186, 0.385106, 0.723738)
 
