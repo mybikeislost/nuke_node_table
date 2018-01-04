@@ -562,9 +562,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 # noinspection PyArgumentList
                 if knob.isKeyAt(nuke.frame()):
                     return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                        constants.KNOB_HAS_KEY_AT_COLOR))
+                        *constants.KNOB_HAS_KEY_AT_COLOR))
                 return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                    constants.KNOB_ANIMATED_COLOR))
+                    *constants.KNOB_ANIMATED_COLOR))
 
         if role == QtCore.Qt.BackgroundRole:
             color = nuke_utils.get_node_tile_color(node)
