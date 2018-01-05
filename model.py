@@ -241,7 +241,7 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
         self.invalidateFilter()
 
     def match(self, string):
-        """check if string is in filter_list or if it is substring when
+        """Check if string is in filter_list or if it is substring when
         filtering by one item only.
 
         Args:
@@ -255,8 +255,13 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
         if not self.filter_list:
             return matching
 
+        # Case sensitive filtering is confusing and unnecessary.
+        string = string.lower()
+
+        # Check for full name in case filter list is more than one item.
         if len(self.filter_list) > 1:
             matching = string in self.filter_list
+        # Check for substring.
         elif len(self.filter_list) == 1:
             matching = self.filter_list[0] in string
 
