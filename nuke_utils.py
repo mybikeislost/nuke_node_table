@@ -1,5 +1,6 @@
 # built-ins
 import os
+import logging
 
 # external
 nuke_loaded = True
@@ -7,6 +8,9 @@ try:
     import nuke
 except ImportError:
     nuke_loaded = False
+
+
+LOG = logging.getLogger(__name__)
 
 
 def node_exists(node):
