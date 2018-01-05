@@ -9,6 +9,24 @@ except ImportError:
     nuke_loaded = False
 
 
+def node_exists(node):
+    """Check if python object node is still attached to a Node.
+
+    Nuke throws a ValueError if node is not attached. This happens when the
+    user deleted a node that is still in use by a python script.
+
+    Args:
+        node (nuke.Node): node python object
+
+    Returns:
+        bool: True if node exists
+    """
+    try:
+        return node.name() is not None
+    except ValueError as err:
+        return False
+
+
 def get_selected_nodes():
     """get current selection
 
