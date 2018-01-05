@@ -417,10 +417,9 @@ class NodeTableWidget(QtWidgets.QWidget):
 
         # Variables:
         # Initial list of classes, will overwrite this with given nodes classes
-        self._node_classes = sorted(nuke_utils.get_node_classes(no_ext=True),
-                                    key=lambda s: s.lower())
+        self._node_classes = []
 
-        self._node_list = node_list or []  # make sure it's iterable
+        self._node_list =  []  # make sure it's iterable
         self._node_names = []
         self._knob_names = []
         self._hidden_knobs = False
@@ -476,7 +475,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.node_class_filter_label = QtWidgets.QLabel('node: class:')
         self.filter_layout.addWidget(self.node_class_filter_label)
         self.node_class_filter_line_edit = QtWidgets.QLineEdit(self.filter_widget)
-        self.node_class_completer = MultiCompleter(self.node_classes)
+        self.node_class_completer = MultiCompleter(list(self.node_classes))
         self.node_class_model = self.node_class_completer.model()
         self.node_class_filter_line_edit.setCompleter(self.node_class_completer)
         self.node_class_filter_line_edit.textChanged.connect(self.node_class_filter_changed)
@@ -487,7 +486,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_layout.addWidget(self.node_name_filter_label)
         self.node_name_filter_line_edit = QtWidgets.QLineEdit()
         self.node_name_filter_label.setAcceptDrops(True)
-        self.node_name_completer = MultiCompleter(self.node_names)
+        self.node_name_completer = MultiCompleter(list(self.node_names))
         self.node_name_model = self.node_name_completer.model()
         self.node_name_filter_line_edit.setCompleter(self.node_name_completer)
         self.node_name_filter_line_edit.textChanged.connect(self.node_name_filter_changed)
@@ -546,7 +545,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.table_view.setModel(self.empty_column_filter_model)
 
         # Load given node list
-        self.node_list = self._node_list
+        self.node_list = node_list or []
 
     def load_selected(self):
         """sets the displayed nodes to current selection
@@ -559,30 +558,38 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_names(self):
-        """returns the list of current nodes names
+        """Generator that yields the list of current nodes names.
 
         Warnings:
             Do not use _node_names
+
+        Yields:
+            str: name of node
         """
-        # TODO: implement as generator
-        return [node.name() for node in self._node_list]
+        for node in self.node_list:
+            yield node.name()
 
     @property
     def node_classes(self):
-        """generates and returns list of node classes
+        """Generates and returns list of node classes
 
         If node_list is set, classes are updated to include only
-        classes of current nodes.
+        classes of current nodes else all possible node classes are returned.
         """
-        # TODO: implement as generator
+
         if self.node_list:
-            self._node_classes = [node.Class() for node in self.node_list]
-        return self._node_classes
+            for node in self.node_list:
+                yield node.Class()
+        else:
+            yield iter(sorted(nuke_utils.get_node_classes(no_ext=True),
+                                 key=lambda s: s.lower()))
 
     @property
     def knob_names(self):
         knobs_names = []
-        for node in self._node_list:
+        for node in self.node_list:
+
+
             for knob in node.knobs():
                 if knob not in knobs_names:
                     knobs_names.append(knob)
@@ -591,11 +598,13 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_list(self):
-        """returns list of loaded nodes before all filtering
+        """Returns list of loaded nodes before all filtering
 
         Returns:
             list: current nodes
         """
+
+        self._node_list = [node for node in self._node_list if nuke_utils.node_exists(node)]
         return self._node_list
 
     @node_list.setter
@@ -603,10 +612,12 @@ class NodeTableWidget(QtWidgets.QWidget):
         """Sets nodes and updates models
         """
         self._node_list = nodes or []
-        self.table_model.node_list = self._node_list
+        self.table_model.node_list = self.node_list
 
-        self.node_name_completer.setModel(model.StringListModel(self.node_names))
-        self.node_class_completer.setModel(model.StringListModel(self.node_classes))
+        self.node_name_completer.setModel(model.StringListModel(
+            list(self.node_names)))
+        self.node_class_completer.setModel(model.StringListModel(
+            list(self.node_classes)))
         self.knob_name_filter_completer.setModel(model.StringListModel(self.knob_names))
         self.table_view.resizeColumnsToContents()
 
