@@ -382,7 +382,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
     def __init__(self, nodes=None):
         super(NodeTableModel, self).__init__()
 
-        self._node_list = nodes  # type: list
+        self._node_list = nodes or []  # type: list
         self._header = []  # type: list
 
         self.palette = get_palette()  # type: QtGui.QPalette
@@ -420,10 +420,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if parent.isValid():
             return 0
 
-        if not self._node_list:
+        if not self.node_list:
             return 0
 
-        return len(self._node_list)
+        return len(self.node_list)
 
     def columnCount(self, parent):
         """
@@ -441,26 +441,26 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if parent.isValid():
             return 0
 
-        if not self._node_list:
+        if not self.node_list:
             return 0
 
         return len(self._header)
 
     def setup_model_data(self):
-        """read all knob names from set self._node_list to define header.
+        """read all knob names from set self.node_list to define header.
 
         Returns:
 
         """
 
         self._header = []
-        if not self._node_list:
+        if not self.node_list:
             return
 
         knob_names = []
-        if len(self._node_list) < 1:
+        if len(self.node_list) < 1:
             return
-        for node in self._node_list:
+        for node in self.node_list:
             if node:
                 # noinspection PyUnresolvedReferences
                 for knob_name, knob in node.knobs().items():
@@ -469,6 +469,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                         knob_names.append(knob.name())
 
         self._header = sorted(self._header, key=lambda s: s.name().lower())
+
+    def removeRows(self, parent, first, last):
+
+        self.beginRemoveRows(parent, first, last)
+        LOG.debug('Removing rows: %s to %s', first, last)
+        for i in reversed(range(first, last+1)):
+            self._node_list.pop(i)
+        self.endRemoveRows()
+        return
 
     def data(self, index, role):
         """Returns the header data.
@@ -491,17 +500,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         row = index.row()
         col = index.column()
 
-        if not self._node_list:
+        if not self.node_list:
             self.setup_model_data()
             return
 
-        node = self._node_list[row]
+        node = self.node_list[row]
 
-        if not node:
-            self.beginResetModel()
-            self._node_list.remove(node)
+        if not nuke_utils.node_exists(node):
+            self.removeRows(QtCore.QModelIndex(), row, row)
             self.setup_model_data()
-            self.endResetModel()
             return
 
         knob = node.knob(self._header[col].name())
@@ -624,7 +631,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.EditRole:
             row = index.row()
             col = index.column()
-            node = self._node_list[row]
+            node = self.node_list[row]
             knob_name = self.headerData(col,
                                         QtCore.Qt.Horizontal,
                                         QtCore.Qt.DisplayRole)
@@ -663,6 +670,12 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         Returns:
             QtCore.Qt.ItemFlag: flags for current cell
         """
+        row = index.row()
+
+        node = self.node_list[row]
+        if not nuke_utils.node_exists(node):
+            self.removeRows(QtCore.QModelIndex(), row, row)
+            return 0
 
         knob = self.data(index, QtCore.Qt.UserRole)  # type: nuke.Knob
 
@@ -709,10 +722,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             return None
 
         elif orientation == QtCore.Qt.Vertical:
-            if section >= len(self._node_list):
+            if section >= len(self.node_list):
                 return None
 
-            node = self._node_list[section]  # type: nuke.Node
+            node = self.node_list[section]  # type: nuke.Node
             if not node:
                 # TODO: delete rows for deleted nodes
                 return None
