@@ -235,7 +235,7 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
         Returns:
             None
         """
-        filter_list = [filter_s.strip() for filter_s
+        filter_list = [filter_s.strip().lower() for filter_s
                        in filter_str.split(self.filter_delimiter)]
         self.filter_list = filter_list
         self.invalidateFilter()
