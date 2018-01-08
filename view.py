@@ -553,7 +553,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         Returns:
             None
         """
-        # TODO: add warning when user loads too many nodes.
+
         self.node_list = nuke_utils.get_selected_nodes()
 
     @property
@@ -613,14 +613,28 @@ class NodeTableWidget(QtWidgets.QWidget):
     def node_list(self, nodes):
         """Sets nodes and updates models
         """
+        num_nodes = len(nodes)
+
+        # Ask for confirmation before loading too many nodes.
+        if num_nodes > constants.NUM_NODES_WARN_BEFORE_LOAD:
+            proceed = nuke_utils.ask('Loading {num_nodes} Nodes may take a '
+                                     'long time. \n'
+                                     'Dou you wish to proceed?'.format(
+                                      num_nodes = num_nodes))
+
+            if not proceed:
+                return
+
         self._node_list = nodes or []
         self.table_model.node_list = self.node_list
 
-        self.node_name_completer.setModel(model.StringListModel(
-            list(self.node_names)))
-        self.node_class_completer.setModel(model.StringListModel(
-            list(self.node_classes)))
-        self.knob_name_filter_completer.setModel(model.StringListModel(self.knob_names))
+        self.node_name_completer.setModel(
+            model.StringListModel(self.node_names))
+        self.node_class_completer.setModel(
+            model.StringListModel(self.node_classes))
+        self.knob_name_filter_completer.setModel(
+            model.StringListModel(self.knob_names))
+
         self.table_view.resizeColumnsToContents()
 
     @QtCore.Slot(bool)
