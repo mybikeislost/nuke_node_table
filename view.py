@@ -643,6 +643,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         if checked is None:
             checked = self.hidden_knobs_action.isChecked()
         self.hidden_knobs = checked
+        self.table_view.resizeColumnsToContents()
 
     @property
     def hidden_knobs(self):
@@ -662,6 +663,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         if checked is None:
             checked = self.disabled_knobs_action.isChecked()
         self.disabled_knobs = checked
+        self.table_view.resizeColumnsToContents()
 
     @property
     def disabled_knobs(self):
@@ -681,6 +683,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         if checked is None:
             checked = self.all_knobs_action.isChecked()
         self.all_knob_states = checked
+        self.table_view.resizeColumnsToContents()
 
     @property
     def all_knob_states(self):
@@ -696,12 +699,12 @@ class NodeTableWidget(QtWidgets.QWidget):
     def update_all_knob_states_action(self):
         self.all_knobs_action.setChecked(all([self.hidden_knobs, self.disabled_knobs]))
 
-
     @QtCore.Slot(str)
     def knob_name_filter_changed(self, value=None):
         if not value:
             value = self.knob_name_filter_line_edit.text()
         self.knob_name_filter = value
+        self.table_view.resizeColumnsToContents()
 
     @property
     def knob_name_filter(self):
@@ -731,6 +734,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         if not node_names:
             node_names = self.node_name_filter_line_edit.text()
         self.node_name_filter = node_names
+        self.table_view.resizeColumnsToContents()
 
     @property
     def node_class_filter(self):
@@ -748,6 +752,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         if not node_classes:
             node_classes = self.node_class_filter_line_edit.text()
         self.node_class_filter = node_classes
+        self.table_view.resizeColumnsToContents()
 
 
 if __name__ == '__main__':
