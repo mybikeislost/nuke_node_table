@@ -566,7 +566,8 @@ class NodeTableWidget(QtWidgets.QWidget):
         Yields:
             str: name of node
         """
-        return sorted(self.node_list, key=lambda n: n.name().lower())
+        node_names = [node.name() for node in self.node_list]
+        return sorted(node_names, key=lambda n: n.lower())
 
     @property
     def node_classes(self):
