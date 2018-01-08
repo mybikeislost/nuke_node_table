@@ -178,12 +178,26 @@ def select_node(node, zoom = 1):
 
 
 def shade_dag_nodes_enabled():
-    """check weather shadows in dag are enabled in settings
+    """Check if nodes are shaded in DAG
 
-    Returns (boolean):
+    Note:
+        Skipping check of the preferences node since that counts towards the
+        10 nodes limit in non-commercial edition.
+
+    Returns:
+        bool: True if nodes are shaded
+
     """
-    pref_node = nuke.toNode("preferences")
-    return pref_node['ShadeDAGNodes'].value()
+
+    # nuke.GlobalsEnvironment.get() returns None for non-existing key.
+    # Not setting default return value because it can only be a string.
+    if not nuke.env.get('nc'):
+        pref_node = nuke.toNode("preferences")
+        shaded = pref_node['ShadeDAGNodes'].value()
+    else:
+        shaded = constants.SHADE_DAG_NODES_NON_COMMERCIAL
+
+    return shaded
 
 
 def ask(promt):

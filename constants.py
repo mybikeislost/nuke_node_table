@@ -29,3 +29,8 @@ EDITOR_DECIMALS = 8
 
 # Ask for user confirmation before loading more than this many nodes.
 NUM_NODES_WARN_BEFORE_LOAD = 50
+
+# Shading mode follows preferences when not in non-commercial mode.
+# Skip checking the preferences node since that counts towards the
+# 10 nodes limit in non-commercial edition.
+SHADE_DAG_NODES_NON_COMMERCIAL = True
