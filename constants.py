@@ -1,5 +1,7 @@
 import nuke
 
+PACKAGE_NICE_NAME = 'Node Spreadsheet'
+
 FILTER_DELIMITER = ','
 
 # Knob classes that can't be edited directly
@@ -24,3 +26,6 @@ EDITOR_CELL_HEIGHT = 28
 
 # editor precision
 EDITOR_DECIMALS = 8
+
+# Ask for user confirmation before loading more than this many nodes.
+NUM_NODES_WARN_BEFORE_LOAD = 50

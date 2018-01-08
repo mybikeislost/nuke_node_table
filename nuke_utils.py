@@ -7,10 +7,22 @@ nuke_loaded = True
 try:
     import nuke
 except ImportError:
+    # We need some Qt to mimic nukes interface functions.
+    from Qt import QtWidgets
     nuke_loaded = False
+
+# internal:
+from NodeTable import constants
 
 
 LOG = logging.getLogger(__name__)
+
+
+# python 3 compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
 
 
 def node_exists(node):
@@ -173,3 +185,14 @@ def shade_dag_nodes_enabled():
     pref_node = nuke.toNode("preferences")
     return pref_node['ShadeDAGNodes'].value()
 
+
+def ask(promt):
+    if nuke_loaded:
+        return nuke.ask(promt)
+    else:
+        reply = QtWidgets.QMessageBox.question(None,
+                                               constants.PACKAGE_NICE_NAME,
+                                               promt,
+                                               (QtWidgets.QMessageBox.Yes |
+                                                QtWidgets.QMessageBox.No))
+        return reply == QtWidgets.QMessageBox.Yes
