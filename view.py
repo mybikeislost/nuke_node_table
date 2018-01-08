@@ -475,7 +475,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.node_class_filter_label = QtWidgets.QLabel('node: class:')
         self.filter_layout.addWidget(self.node_class_filter_label)
         self.node_class_filter_line_edit = QtWidgets.QLineEdit(self.filter_widget)
-        self.node_class_completer = MultiCompleter(list(self.node_classes))
+        self.node_class_completer = MultiCompleter(self.node_classes)
         self.node_class_model = self.node_class_completer.model()
         self.node_class_filter_line_edit.setCompleter(self.node_class_completer)
         self.node_class_filter_line_edit.textChanged.connect(self.node_class_filter_changed)
@@ -486,7 +486,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_layout.addWidget(self.node_name_filter_label)
         self.node_name_filter_line_edit = QtWidgets.QLineEdit()
         self.node_name_filter_label.setAcceptDrops(True)
-        self.node_name_completer = MultiCompleter(list(self.node_names))
+        self.node_name_completer = MultiCompleter(self.node_names)
         self.node_name_model = self.node_name_completer.model()
         self.node_name_filter_line_edit.setCompleter(self.node_name_completer)
         self.node_name_filter_line_edit.textChanged.connect(self.node_name_filter_changed)
@@ -566,12 +566,11 @@ class NodeTableWidget(QtWidgets.QWidget):
         Yields:
             str: name of node
         """
-        for node in sorted(self.node_list, key=lambda n: n.name().lower()):
-            yield node.name()
+        return sorted(self.node_list, key=lambda n: n.name().lower())
 
     @property
     def node_classes(self):
-        """Generates and returns list of node classes
+        """Returns list of node classes
 
         If node_list is set, classes are updated to include only
         classes of current nodes else all possible node classes are returned.
@@ -582,7 +581,7 @@ class NodeTableWidget(QtWidgets.QWidget):
                 node_classes.add(node.Class())
         else:
             node_classes = nuke_utils.get_node_classes(no_ext=True)
-        yield iter(sorted(list(node_classes), key=lambda s: s.lower()))
+        return sorted(list(node_classes), key=lambda s: s.lower())
 
     @property
     def knob_names(self):
