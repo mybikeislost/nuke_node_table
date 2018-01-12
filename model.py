@@ -47,6 +47,29 @@ def get_palette(widget=None):
     return app.palette(widget)
 
 
+def bisect_case_insensitive(sorted_list, new_item):
+    """Locate the insertion point for new_item to maintain sorted order.
+
+    Taken from https://stackoverflow.com/a/41903429
+
+    Args:
+        sorted_list (list): sorted list
+        new_item (str): new string to add to list
+
+    Returns:
+        int: index at which point new_item must be inserted.
+    """
+    key = new_item.lower()
+    lo, hi = 0, len(sorted_list)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if key < sorted_list[mid].lower():
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+
+
 def find_substring_in_dict_keys(dictionary,
                                 key_str,
                                 lower=True,
@@ -388,30 +411,62 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         super(NodeTableModel, self).__init__()
 
         self._node_list = nodes or []  # type: list
-        self._header = []  # type: list
+        self._knob_list = []  # type: list
 
         self.palette = get_palette()  # type: QtGui.QPalette
 
-        if nodes:
-            self.setup_model_data()
-
-
     @property
     def node_list(self):
-        """current list of nodes
+        """Current list of displayed nodes.
 
         Returns:
             list: list of nuke.Node
         """
         return self._node_list
 
+    @property
+    def node_names(self):
+        """Get all names of the current node list in the same order.
+
+        Returns:
+            list: node names
+        """
+        return [node.name() for node in self.node_list]
+
+    @property
+    def knob_list(self):
+        return self._knob_list
+
+    @property
+    def knob_names(self):
+        """Names of all knobs displayed
+
+        Returns:
+            list: list on names (str).
+
+        """
+
+        return [knob.name() for knob in self.knob_list]
+
     @node_list.setter
     def node_list(self, nodes):
 
-        self.beginResetModel()
-        self._node_list = nodes
-        self.setup_model_data()
-        self.endResetModel()
+        new_nodes = set(nodes) - set(self.node_list)
+        remove_nodes = set(self.node_list)  - set(nodes)
+
+        for node in remove_nodes:
+            remove_index = self.node_list.index(node)
+            self.removeRows(parent=QtCore.QModelIndex(),
+                            row=remove_index,
+                            count=len(remove_nodes))
+
+        for node in new_nodes:
+            insert_index = bisect_case_insensitive(self.node_names,
+                                                   node.name())
+            self.insertRows(parent=QtCore.QModelIndex(),
+                            row=insert_index,
+                            count=1,
+                            items=[node])
 
     def rowCount(self, parent):
         """number of nodes
@@ -427,7 +482,6 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         if not self.node_list:
             return 0
-
         return len(self.node_list)
 
     def columnCount(self, parent):
@@ -449,40 +503,142 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if not self.node_list:
             return 0
 
-        return len(self._header)
+        return len(self.knob_list)
 
     def setup_model_data(self):
         """read all knob names from set self.node_list to define header.
 
-        Returns:
+        """
+        old_header_knobs_names = set(self.knob_names)
+        new_header_knobs = {}
 
+        # collect all knobs to display
+        for node in self.node_list:
+            # noinspection PyUnresolvedReferences
+            for knob_name, knob in node.knobs().items():
+                if knob_name not in new_header_knobs.keys():
+                    new_header_knobs[knob_name] = knob
+
+        # collect all knobs to remove
+        remove_knobs = []
+        for knob in self.knob_list:
+            if knob.name() not in new_header_knobs.keys():
+                remove_knobs.append(knob)
+
+        # remove all knobs that do not belong to current node selection.
+        for knob in remove_knobs:
+            remove_index = self.knob_list.index(knob)
+            self.removeColumns(parent=QtCore.QModelIndex(),
+                               column=remove_index,
+                               count=1)
+
+        # Add all knobs at once, if model is empty
+        if not self.knob_list and new_header_knobs:
+            # Sort knobs since they are not sorted on addition like below
+            new_header_knobs_list = sorted(new_header_knobs.values(),
+                                      key=lambda k: k.name().lower())
+            self.insertColumns(parent=QtCore.QModelIndex(),
+                               column=0,
+                               count=len(new_header_knobs_list),
+                               items=new_header_knobs_list)
+
+        else:
+            for knob in new_header_knobs.values():
+                if knob.name() in old_header_knobs_names:
+                    continue
+                header_names = [k.name() for k in self.knob_list]
+                insert_index = bisect_case_insensitive(header_names,
+                                                      knob.name())
+                self.insertColumns(parent=QtCore.QModelIndex(),
+                                   column=insert_index,
+                                   count=1,
+                                   items=[knob])
+
+    def insertColumns(self, column, count, parent, items):
+        """Add items to header
+
+        Args:
+            parent (QtCore.QModelIndex): parent index
+            column: index of new columns
+            count (int): number of items to add (ignored)
+            item (list): items to add
+
+        Returns:
+            bool: True if items added
         """
 
-        self._header = []
-        if not self.node_list:
-            return
+        count = len(items)
+        self.beginInsertColumns(parent,
+                                column,
+                                column + count - 1)
+        for i, item in enumerate(items):
+            self._knob_list.insert(column + i, item)
+        self.endInsertColumns()
+        return True
 
-        knob_names = []
-        if len(self.node_list) < 1:
-            return
-        for node in self.node_list:
-            if node:
-                # noinspection PyUnresolvedReferences
-                for knob_name, knob in node.knobs().items():
-                    if knob_name not in knob_names:
-                        self._header.append(knob)
-                        knob_names.append(knob.name())
+    def removeColumns(self,  column, count, parent):
+        """Remove columns
 
-        self._header = sorted(self._header, key=lambda s: s.name().lower())
+        Args:
+            parent (QtCore.QModelIndex): parent index
+            first (int): first column to remove
+            last (int): last column to remove
 
-    def removeRows(self, parent, first, last):
+        Returns:
+            bool: True if successfully removed
+        """
+        self.beginRemoveColumns(parent, column, column + count - 1)
 
-        self.beginRemoveRows(parent, first, last)
-        LOG.debug('Removing rows: %s to %s', first, last)
-        for i in reversed(range(first, last+1)):
+        for col in reversed(range(column, column + count)):
+            self._knob_list.pop(col)
+        self.endRemoveColumns()
+        return True
+
+    def insertRows(self, row, count, parent, items):
+        """Add consecutive rows
+
+        Args:
+            parent (QtCore.QModelIndex): parent index
+            column: index of new columns
+            count (int): number of items to add (ignored)
+            item (list): items to add
+
+        Returns:
+            bool: True if items added
+        """
+
+        count = len(items)
+        self.beginInsertRows(parent,
+                             row,
+                             row + count - 1)
+        for i, item in enumerate(items):
+            self._node_list.insert(row + i, item)
+        self.endInsertRows()
+
+        self.setup_model_data()
+
+        return True
+
+    def removeRows(self, row, count, parent):
+        """Remove consecutive rows.
+
+        Args:
+            row (int): first row to remove
+            count (int): number of rows to remove
+            parent (QtCore.QModelIndex): parent index
+
+        Returns:
+            bool: True if successfully removed.
+        """
+        self.beginRemoveRows(parent, row, row + count - 1)
+        LOG.debug('Removing rows: %s to %s.', row, row + count - 1)
+        for i in reversed(range(row, row + count)):
             self._node_list.pop(i)
         self.endRemoveRows()
-        return
+
+        # Update horizontal header.
+        self.setup_model_data()
+        return True
 
     def data(self, index, role):
         """Returns the header data.
@@ -512,11 +668,12 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         node = self.node_list[row]
 
         if not nuke_utils.node_exists(node):
-            self.removeRows(QtCore.QModelIndex(), row, row)
-            self.setup_model_data()
+            self.removeRows(parent=QtCore.QModelIndex(),
+                            row=row,
+                            count=1)
             return
 
-        knob = node.knob(self._header[col].name())
+        knob = node.knob(self.knob_list[col].name())
 
         if role == QtCore.Qt.BackgroundRole:
             if knob and knob.isAnimated():
@@ -662,7 +819,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     self.dataChanged.emit(index, index)
                     return True
                 else:
-                    LOG.warn('could not edit knob %s ', knob_name)
+                    LOG.warning('could not edit knob %s ', knob_name)
         return False
 
     def flags(self, index):
@@ -679,7 +836,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         node = self.node_list[row]
         if not nuke_utils.node_exists(node):
-            self.removeRows(QtCore.QModelIndex(), row, row)
+            self.removeRows(row, 1, QtCore.QModelIndex())
             return 0
 
         knob = self.data(index, QtCore.Qt.UserRole)  # type: nuke.Knob
@@ -717,13 +874,13 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         """
 
         if orientation == QtCore.Qt.Horizontal:
-            if section >= len(self._header):
+            if section >= len(self.knob_list):
                 return None
 
             if role == QtCore.Qt.DisplayRole:
-                return self._header[section].name()
+                return self.knob_list[section].name()
             elif role == QtCore.Qt.UserRole:
-                return self._header[section]
+                return self.knob_list[section]
             return None
 
         elif orientation == QtCore.Qt.Vertical:
@@ -731,17 +888,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 return None
 
             node = self.node_list[section]  # type: nuke.Node
-            if not node:
-                # TODO: delete rows for deleted nodes
-                return None
-            else:
-                if role == QtCore.Qt.DisplayRole:
-                    return node.name()
-                elif role == QtCore.Qt.UserRole:
-                    return node
-                elif role == QtCore.Qt.BackgroundRole:
-                    return QtGui.QBrush(QtGui.QColor.fromRgbF(
-                        *(nuke_utils.get_node_tile_color(node))))
-                elif role == QtCore.Qt.ForegroundRole:
-                    return QtGui.QPen(QtGui.QColor.fromRgbF(
-                        *(nuke_utils.get_node_font_color(node))))
+            if not nuke_utils.node_exists(node):
+                self.removeRows(section, 1, QtCore.QModelIndex())
+                return
+
+            if role == QtCore.Qt.DisplayRole:
+                return node.name()
+            elif role == QtCore.Qt.UserRole:
+                return node
+            elif role == QtCore.Qt.BackgroundRole:
+                return QtGui.QBrush(QtGui.QColor.fromRgbF(
+                    *(nuke_utils.get_node_tile_color(node))))
+            elif role == QtCore.Qt.ForegroundRole:
+                return QtGui.QPen(QtGui.QColor.fromRgbF(
+                    *(nuke_utils.get_node_font_color(node))))
