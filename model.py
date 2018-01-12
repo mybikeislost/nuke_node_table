@@ -514,6 +514,11 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         # collect all knobs to display
         for node in self.node_list:
+            # If node was deleted, remove node and return.
+            if not nuke_utils.node_exists(node):
+                self.node_list.remove(node)
+                return
+        
             # noinspection PyUnresolvedReferences
             for knob_name, knob in node.knobs().items():
                 if knob_name not in new_header_knobs.keys():
