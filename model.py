@@ -508,6 +508,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
     def setup_model_data(self):
         """read all knob names from set self.node_list to define header.
 
+        First all knobs to display are collected. To match this list, all
+        knobs to remove and to add are collected and removed and inserted as
+        needed.
         """
         old_header_knobs_names = set(self.knob_names)
         new_header_knobs = {}
@@ -516,7 +519,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         for node in self.node_list:
             # If node was deleted, remove node and return.
             if not nuke_utils.node_exists(node):
-                self.node_list.remove(node)
+                self.removeRows(row=self.node_list.index(node),
+                                count=1,
+                                parent=QtCore.QModelIndex())
                 return
         
             # noinspection PyUnresolvedReferences
@@ -547,11 +552,12 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                                count=len(new_header_knobs_list),
                                items=new_header_knobs_list)
 
+        # Insert each knob in sorted order.
         else:
             for knob in new_header_knobs.values():
                 if knob.name() in old_header_knobs_names:
                     continue
-                header_names = [k.name() for k in self.knob_list]
+                header_names = self.knob_names
                 insert_index = bisect_case_insensitive(header_names,
                                                       knob.name())
                 self.insertColumns(parent=QtCore.QModelIndex(),
