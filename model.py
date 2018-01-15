@@ -651,6 +651,41 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         self.setup_model_data()
         return True
 
+    def get_background_color(self, row, node, knob):
+        """Return the cell color.
+
+        If a knob is animated, return colors matching Nuke's property panel.
+        Else blend the nodes color with the apps palette color at certain
+        amounts, depending on weather the node has a knob or not.
+        """
+        if knob and knob.isAnimated():
+            # noinspection PyArgumentList
+            if knob.isKeyAt(nuke.frame()):
+                return QtGui.QBrush(QtGui.QColor().fromRgbF(
+                    *constants.KNOB_HAS_KEY_AT_COLOR))
+            return QtGui.QBrush(QtGui.QColor().fromRgbF(
+                *constants.KNOB_ANIMATED_COLOR))
+
+        else:
+            color = nuke_utils.get_node_tile_color(node)
+            if not row % 2:
+                base = self.palette.base().color()  # type: QtGui.QColor
+            else:
+                base = self.palette.alternateBase().color()
+
+            if knob:
+                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
+            else:
+                mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
+
+            base_color = base.getRgbF()[:3]
+
+            # Blend Nodes color with base color
+            base_color_blend = scalar(base_color, 1.0 - mix)
+            color_blend = scalar(color, mix)
+            color = [sum(x) for x in zip(base_color_blend, color_blend)]
+            return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
+
     def data(self, index, role):
         """Returns the header data.
 
@@ -687,33 +722,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         knob = node.knob(self.knob_list[col].name())
 
         if role == QtCore.Qt.BackgroundRole:
-            if knob and knob.isAnimated():
-                # noinspection PyArgumentList
-                if knob.isKeyAt(nuke.frame()):
-                    return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                        *constants.KNOB_HAS_KEY_AT_COLOR))
-                return QtGui.QBrush(QtGui.QColor().fromRgbF(
-                    *constants.KNOB_ANIMATED_COLOR))
-
-            else:
-                color = nuke_utils.get_node_tile_color(node)
-                if not row % 2:
-                    base = self.palette.base().color()  # type: QtGui.QColor
-                else:
-                    base = self.palette.alternateBase().color()
-
-                if knob:
-                    mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_HAS_KNOB
-                else:
-                    mix = constants.CELL_MIX_NODE_COLOR_AMOUNT_NO_KNOB
-
-                base_color = base.getRgbF()[:3]
-
-                # Blend Nodes color with base color
-                base_color_blend = scalar(base_color, 1.0 - mix)
-                color_blend = scalar(color, mix)
-                color = [sum(x) for x in zip(base_color_blend, color_blend)]
-                return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
+            return self.get_background_color(row, node, knob)
 
         # Return early if node has no knob at current index.
         # Further data roles require a knob.

@@ -18,13 +18,6 @@ from NodeTable import constants
 LOG = logging.getLogger(__name__)
 
 
-# python 3 compatibility
-try:
-    basestring
-except NameError:
-    basestring = str
-
-
 def node_exists(node):
     """Check if python object node is still attached to a Node.
 
@@ -106,7 +99,7 @@ def get_node_tile_color(node):
         node (nuke.Node): node
 
     Returns:
-        list: colors in rgb
+        tuple: colors in rgb
     """
     color = None
     tile_color_knob = node.knob('tile_color')
@@ -200,13 +193,21 @@ def shade_dag_nodes_enabled():
     return shaded
 
 
-def ask(promt):
+def ask(prompt=""):
+    """Ask user a yes/no question.
+
+    Args:
+        prompt: Question to display.
+
+    Returns:
+        bool: users answer.
+    """
     if nuke_loaded:
-        return nuke.ask(promt)
+        return nuke.ask(prompt)
     else:
         reply = QtWidgets.QMessageBox.question(None,
                                                constants.PACKAGE_NICE_NAME,
-                                               promt,
+                                               prompt,
                                                (QtWidgets.QMessageBox.Yes |
                                                 QtWidgets.QMessageBox.No))
         return reply == QtWidgets.QMessageBox.Yes
