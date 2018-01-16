@@ -404,6 +404,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             self.removeRows(parent=QtCore.QModelIndex(),
                             row=remove_index,
                             count=1)
+            return
 
         for node in new_nodes:
             insert_index = bisect_case_insensitive(self.node_names,
