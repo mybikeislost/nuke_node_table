@@ -1,17 +1,23 @@
-# built-ins
+"""Functions to interact with Nuke.
+
+"""
+
+
+# Import built-in modules.
 import os
 import logging
 
-# external
-nuke_loaded = True
+# Import third party modules.
+NUKE_LOADED = True
 try:
     import nuke
 except ImportError:
     # We need some Qt to mimic nukes interface functions.
     from Qt import QtWidgets
-    nuke_loaded = False
+    NUKE_LOADED = False
 
-# internal:
+# Import internal modules.
+# pylint: disable=wrong-import-position
 from NodeTable import constants
 
 
@@ -31,10 +37,11 @@ def node_exists(node):
         bool: True if node exists
     """
     try:
-        return node.name() is not None
-    except ValueError as err:
+        node.name()
+    except ValueError:
         return False
 
+    return True
 
 def get_selected_nodes():
     """get current selection
@@ -45,37 +52,37 @@ def get_selected_nodes():
     return nuke.selectedNodes()
 
 
-def to_hex(rgb):
+def to_hex(color_rgb):
     """convert rgb color values to hex
 
     Args:
-        rgb (tuple): color values 0-1
+        color_rgb (tuple): color values 0-1
 
     Returns:
         str: color in hex notation
     """
-    return  int('%02x%02x%02x%02x' % (rgb[0] * 255,
-                                      rgb[1] * 255,
-                                      rgb[2] * 255, 1), 16)
+    return  int('%02x%02x%02x%02x' % (color_rgb[0] * 255,
+                                      color_rgb[1] * 255,
+                                      color_rgb[2] * 255, 1), 16)
 
 
-def to_rgb(hex):
+def to_rgb(color_hex):
     """hex to rgb
     Author: Ivan Busquets
 
     Args:
-        hex: color in hex format
+        color_hex: color in hex format
 
     Returns (tuple): color in 0-1 range
 
     """
 
-    r = (0xFF & hex>> 24) / 255.0
-    g = (0xFF & hex >> 16) / 255.0
-    b = (0xFF & hex >> 8) / 255.0
-    a = (0xFF & hex >> 1) / 255.0
+    red = (0xFF & color_hex >> 24) / 255.0
+    green = (0xFF & color_hex >> 16) / 255.0
+    blue = (0xFF & color_hex >> 8) / 255.0
+    alpha = (0xFF & color_hex >> 1) / 255.0
 
-    return r, g, b, a
+    return red, green, blue, alpha
 
 
 def get_unique(seq):
@@ -113,7 +120,14 @@ def get_node_tile_color(node):
 
 
 def get_node_font_color(node):
-    color = None
+    """Get the label color of a node.
+
+    Args:
+        node (nuke.Node): node
+
+    Returns:
+        tuple: color in rgb
+    """
     color_knob = node.knob('note_font_color')
     if color_knob:
         return to_rgb(color_knob.value())[:3]
@@ -128,7 +142,7 @@ def get_node_classes(no_ext=True):
     Returns:
         list: available node classes
     """
-    if nuke_loaded:
+    if NUKE_LOADED:
         plugins = nuke.plugins(nuke.ALL | nuke.NODIR, "*." + nuke.PLUGIN_EXT)
     else:
         plugins = ['Merge2', 'Mirror', 'Transform']
@@ -139,7 +153,7 @@ def get_node_classes(no_ext=True):
     return plugins
 
 
-def select_node(node, zoom = 1):
+def select_node(node, zoom=1):
     """selects and (optionally) zooms DAG to given node.
 
     Warnings:
@@ -158,13 +172,21 @@ def select_node(node, zoom = 1):
     nuke.selectAll()
     nuke.invertSelection()
 
+    # Get the top-most parent nodes name.
+    if isinstance(node, nuke.Node):
+        full_name = node.fullName()
+        if '.' in full_name:
+            node = full_name.split('.')[0]
+
+    # Starting from the node name get the top-most parent node.
     if isinstance(node, basestring):
         # if node is part of a group: select the group
         if "." in node:
             node_name = node.split(".")[0]
             node = nuke.toNode(node_name)
 
-    if node:
+    # Select and zoom to Node.
+    if isinstance(node, nuke.Node):
         node['selected'].setValue(True)
         if zoom:
             nuke.zoom(zoom, [node.xpos(), node.ypos()])
@@ -202,12 +224,15 @@ def ask(prompt=""):
     Returns:
         bool: users answer.
     """
-    if nuke_loaded:
-        return nuke.ask(prompt)
+    reply = True
+    if NUKE_LOADED:
+        reply = nuke.ask(prompt)
     else:
         reply = QtWidgets.QMessageBox.question(None,
                                                constants.PACKAGE_NICE_NAME,
                                                prompt,
                                                (QtWidgets.QMessageBox.Yes |
                                                 QtWidgets.QMessageBox.No))
-        return reply == QtWidgets.QMessageBox.Yes
+        reply = reply == QtWidgets.QMessageBox.Yes
+
+    return reply

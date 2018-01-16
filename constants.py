@@ -1,3 +1,6 @@
+"""Define all constant variables here, to avoid magic numbers."""
+
+# pylint: disable=import-error
 import nuke
 
 PACKAGE_NICE_NAME = 'Node Spreadsheet'

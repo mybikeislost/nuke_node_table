@@ -1,25 +1,37 @@
-# built ins
-import sys
-import nuke
+"""Build the widget and stack the models.
+"""
+
+# Import built-in modules.
 import math
 
-# external
+# Import third party modules.
+# pylint: disable=import-error
+import nuke
+
+# Keeping this for development to enable auto-completion.
+# pylint: disable=no-name-in-module
 if __name__ == '__main__':
     from PySide2 import QtCore, QtGui, QtWidgets
     __binding__ = 'PySide2'
 else:
     from Qt import QtCore, QtGui, QtWidgets, __binding__
 
-# internal
-from NodeTable import knob_editors, nuke_utils, model, constants
+# Import internal modules.
+# pylint: disable=wrong-import-position
+from NodeTable import knob_editors
+from NodeTable import nuke_utils
+from NodeTable import model as models
+from NodeTable import constants
 
 
 class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
+    """Delegate that offer custom editors for various nuke.Knob classes."""
 
     def __init__(self, parent):
         super(KnobsItemDelegate, self).__init__()
         self.parent = parent
 
+    # pylint: disable=invalid-name
     def createEditor(self, parent, option, index):
         """
 
@@ -31,8 +43,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         Returns:
             new editor
         """
-        reload(knob_editors)
-        model = index.model() # type: model.NodeTableModel
+        model = index.model() # type: models.NodeTableModel
         # row = index.row() # type: int
         # column = index.column() # type: int
 
@@ -45,13 +56,15 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
 
             elif isinstance(knob, nuke.Boolean_Knob):
             #    return QtWidgets.QCheckBox()
-                return super(KnobsItemDelegate, self).createEditor(parent, option, index)
+                return super(KnobsItemDelegate, self).createEditor(parent,
+                                                                   option,
+                                                                   index)
 
             elif isinstance(knob, nuke.Enumeration_Knob):
 
                 combobox = QtWidgets.QComboBox(parent)
-                for v in knob.values():
-                    combobox.addItem(v)
+                for value in knob.values():
+                    combobox.addItem(value)
                 return combobox
 
             elif isinstance(knob, nuke.IArray_Knob):
@@ -60,14 +73,18 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             elif isinstance(knob, nuke.Transform2d_Knob):
                 rows = math.sqrt(len(model.data(index, QtCore.Qt.EditRole)))
 
-            if isinstance(model.data(index, QtCore.Qt.EditRole), (list, tuple)):
-                return knob_editors.ArrayEditor(parent, len(model.data(index, QtCore.Qt.EditRole)), rows)
-            else:
-                return super(KnobsItemDelegate, self).createEditor(parent, option, index)
-        else:
-            return super(KnobsItemDelegate, self).createEditor(parent, option, index)
-        # Array knobs:
+            if isinstance(model.data(index, QtCore.Qt.EditRole),
+                          (list, tuple)):
+                items = len(model.data(index, QtCore.Qt.EditRole))
+                return knob_editors.ArrayEditor(parent,
+                                                items,
+                                                rows)
 
+        return super(KnobsItemDelegate, self).createEditor(parent,
+                                                           option,
+                                                           index)
+
+    # pylint: disable=invalid-name
     def setEditorData(self, editor, index):
         """sets editor to knobs value
 
@@ -79,22 +96,20 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         """
 
         model = index.model() # type: model.NodeTableModel
-        row = index.row() # type: int
-        column = index.column() # type: int
-
         data = model.data(index, QtCore.Qt.EditRole)
 
         # Array knobs:
         if isinstance(data, (list, tuple)):
-            editor.setEditorData(data)
+            editor.set_editor_data(data)
         else:
             super(KnobsItemDelegate, self).setEditorData(editor, index)
 
+    # pylint: disable=invalid-name
     def setModelData(self, editor, model, index):
         """sets new value to model
 
         Args:
-            editor (QtWidgets.QWidget):
+            editor (knob_editors.QWidget):
             model (QtCore.QAbstractTableModel):
             index (QtCore.QModelIndex): current index
 
@@ -104,8 +119,6 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         """
 
         model = index.model() # type: model.NodeTableModel
-        row = index.row() # type: int
-        column = index.column() # type: int
 
         knob = model.data(index, QtCore.Qt.UserRole)
         data = None
@@ -114,21 +127,27 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
 
             if isinstance(knob, nuke.Boolean_Knob):
-                super(KnobsItemDelegate, self).setModelData(editor, model, index)
+                super(KnobsItemDelegate, self).setModelData(editor,
+                                                            model,
+                                                            index)
 
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
 
             elif isinstance(editor, knob_editors.ArrayEditor):
-                data = editor.getEditorData()
+                data = editor.get_editor_data()
 
             if data:
                 model.setData(index, data, QtCore.Qt.EditRole)
             else:
-                super(KnobsItemDelegate, self).setModelData(editor, model, index)
+                super(KnobsItemDelegate, self).setModelData(editor,
+                                                            model,
+                                                            index)
         else:
-            super(KnobsItemDelegate, self).setModelData(editor, model, index)
-
+            super(KnobsItemDelegate, self).setModelData(editor,
+                                                        model,
+                                                        index)
+    # pylint: disable=invalid-name
     def updateEditorGeometry(self, editor, option, index):
         """
 
@@ -141,7 +160,6 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             None
         """
         model = index.model() # type: model.NodeTableModel
-        row = index.row() # type: int
         column = index.column() # type: int
 
         knob = model.data(index, QtCore.Qt.UserRole)
@@ -150,16 +168,22 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         # Array knobs:
         if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
             if isinstance(knob, nuke.Boolean_Knob):
-                super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                    option,
+                                                                    index)
             elif isinstance(knob, nuke.Enumeration_Knob):
-                super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                    option,
+                                                                    index)
             else:
                 rect = option.rect
                 if isinstance(value, (list, tuple)):
 
                     if isinstance(knob, nuke.IArray_Knob):
-                        rect.setWidth(constants.EDITOR_CELL_WIDTH * knob.width())
-                        rect.setHeight(constants.EDITOR_CELL_HEIGHT * knob.height())
+                        rect.setWidth(constants.EDITOR_CELL_WIDTH *
+                                      knob.width())
+                        rect.setHeight(constants.EDITOR_CELL_HEIGHT *
+                                       knob.height())
 
                     elif isinstance(knob, nuke.Transform2d_Knob):
                         root = math.sqrt(len(value))
@@ -174,21 +198,11 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                             rect.adjust(-50, 0, 50, 0)
 
                 editor.setGeometry(rect)
-                #editor.adjustSize()
         else:
-            super(KnobsItemDelegate, self).updateEditorGeometry(editor, option, index)
-    """
-    def paint(self, painter, option, index):
-
-        model = index.model() # type: model.NodeTableModel
-        row = index.row() # type: int
-        column = index.column() # type: int
-
-        knob = model.data(index, QtCore.Qt.UserRole)
-
-        super(KnobsItemDelegate, self).paint(painter, option, index)
-    """
-
+            super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                option,
+                                                                index)
+# pylint: disable=invalid-name
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
     shows properties of node if double clicked
@@ -208,7 +222,7 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         self.sectionDoubleClicked.connect(self.show_properties)
 
     def paintSection(self, painter, rect, index):
-        """
+        """Mimic Nuke's way of drawing nodes in DAG.
 
         Args:
             painter (QtGui.QPainter):
@@ -221,13 +235,21 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         QtWidgets.QHeaderView.paintSection(self, painter, rect, index)
         painter.restore()
 
-        bg_brush = self.model().headerData( index, QtCore.Qt.Vertical,QtCore.Qt.BackgroundRole) # type: QtGui.QBrush
-        fg_pen = self.model().headerData(index, QtCore.Qt.Vertical, QtCore.Qt.ForegroundRole) # type: QtGui.QPen
+        bg_brush = self.model().headerData(index,
+                                           QtCore.Qt.Vertical,
+                                           QtCore.Qt.BackgroundRole)  # type: QtGui.QBrush
+
+        fg_pen = self.model().headerData(index,
+                                         QtCore.Qt.Vertical,
+                                         QtCore.Qt.ForegroundRole)  # type: QtGui.QPen
 
         if self.shade_dag_nodes_enabled:
-            gradient = QtGui.QLinearGradient(rect.topLeft(), rect.bottomLeft())
+            gradient = QtGui.QLinearGradient(rect.topLeft(),
+                                             rect.bottomLeft())
             gradient.setColorAt(0, bg_brush.color())
-            gradient.setColorAt(1, QtGui.QColor.fromRgbF(*model.scalar( bg_brush.color().getRgbF()[:3], 0.6)))
+            gradient_end_color = models.scalar(bg_brush.color().getRgbF()[:3],
+                                               0.6)
+            gradient.setColorAt(1, QtGui.QColor.fromRgbF(*gradient_end_color))
             painter.fillRect(rect, gradient)
         else:
             painter.fillRect(rect, bg_brush)
@@ -235,10 +257,12 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         rect_adj = rect
         rect_adj.adjust(-1, -1, -1, -1)
         painter.setPen(fg_pen)
-        painter.drawText(rect, QtCore.Qt.AlignCenter, self.model().headerData( index, QtCore.Qt.Vertical,QtCore.Qt.DisplayRole))
+        text = self.model().headerData(index,
+                                       QtCore.Qt.Vertical,
+                                       QtCore.Qt.DisplayRole)
+        painter.drawText(rect, QtCore.Qt.AlignCenter, text)
         painter.setPen(QtGui.QPen(QtGui.QColor.fromRgbF(0.0, 0.0, 0.0)))
         painter.drawRect(rect_adj)
-
 
     def get_node(self, section):
         """returns node at section
@@ -249,9 +273,9 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         Returns:
             node (nuke.Node)
         """
-        model = self.model()  # type: QtCore.QAbstractItemModel
-        node = model.headerData(section, QtCore.Qt.Vertical, QtCore.Qt.UserRole)
-        return node
+        return self.model().headerData(section,
+                                       QtCore.Qt.Vertical,
+                                       QtCore.Qt.UserRole)
 
     def select_node(self, section):
         """selects node and zooms node graph
@@ -290,7 +314,6 @@ class NodeTableView(QtWidgets.QTableView):
         self.delegate = KnobsItemDelegate(self)
         self.setItemDelegate(self.delegate)
 
-        self.resizeColumnsToContents()
         self.setHorizontalScrollMode(QtWidgets.QTableView.ScrollPerPixel)
         self.setVerticalScrollMode(QtWidgets.QTableView.ScrollPerPixel)
 
@@ -317,6 +340,14 @@ class NodeTableView(QtWidgets.QTableView):
         super(NodeTableView, self).mouseReleaseEvent(event)
 
     def commitData(self, editor):
+        """Set the current editor data to the model for the whole selection.
+
+        Args:
+            editor:
+
+        Returns:
+            None
+        """
         # call parent commitData first
         super(NodeTableView, self).commitData(editor)
 
@@ -344,7 +375,7 @@ class MultiCompleter(QtWidgets.QCompleter):
 
     Args:
         model_list (QtCore.QStringListModel or list): complete these words
-        delimiter (str): seperate words by this string (optional, default: ",")
+        delimiter (str): separate words by this string (optional, default: ",")
     """
     def __init__(self, model_list=None, delimiter=","):
         super(MultiCompleter, self).__init__(model_list)
@@ -353,17 +384,35 @@ class MultiCompleter(QtWidgets.QCompleter):
         self.delimiter = delimiter
 
     def pathFromIndex(self, index):
+        """Complete the input
+
+        Args:
+            index (QtCore.QModelIndex):
+
+        Returns:
+            str: completed input
+        """
         path = super(MultiCompleter, self).pathFromIndex(index)
         lst = str(self.widget().text()).split(self.delimiter)
         if len(lst) > 1:
-            path = '%s%s %s' % (self.delimiter.join(lst[:-1]), self.delimiter, path)
+            path = '%s%s %s' % (self.delimiter.join(lst[:-1]),
+                                self.delimiter, path)
         return path
 
     def splitPath(self, path):
+        """Split and strip the input
+
+        Args:
+            path (str):
+
+        Returns:
+            str
+        """
         path = str(path.split(self.delimiter)[-1]).lstrip(' ')
         return [path]
 
 
+# pylint: disable=too-few-public-methods
 class KeepOpenMenu(QtWidgets.QMenu):
     """Menu that stays open to allow multiple selections
 
@@ -371,10 +420,16 @@ class KeepOpenMenu(QtWidgets.QMenu):
     """
     # TODO: keep menu open
 
-    def __init__(self, parent=None):
-        super(KeepOpenMenu, self).__init__(parent)
-
     def eventFilter(self, obj, event):
+        """Eat the mouse event but trigger the objects action.
+
+        Args:
+            obj:
+            event:
+
+        Returns:
+            bool
+        """
         if event.type() in [QtCore.QEvent.MouseButtonRelease]:
             if isinstance(obj, QtWidgets.QMenu):
                 if obj.activeAction():
@@ -387,6 +442,7 @@ class KeepOpenMenu(QtWidgets.QMenu):
         return super(KeepOpenMenu, self).eventFilter(obj, event)
 
 
+# pylint: disable=too-few-public-methods
 class CheckAction(QtWidgets.QAction):
     """Creates a checkable QAction
 
@@ -399,14 +455,22 @@ class CheckAction(QtWidgets.QAction):
         self.setCheckable(True)
 
 
+# pylint: disable=line-too-long, too-many-instance-attributes
 class NodeTableWidget(QtWidgets.QWidget):
     """Creates the GUI for the table view and filtering
 
-    Filtering is achieved by stacking multiple custom QSortFilterProxyModels
+    Filtering is achieved by stacking multiple custom QSortFilterProxyModels.
+    The node list and filters are accessible through pythonic properties.
+
+    Examples:
+        from NodeTable import view
+        table = view.NodeTableWidget()
+        table.node_list = nuke.selectedNodes()
+        table.node_class_filter = 'Merge2, Blur'
 
     Args:
-        node_list (list): list of nuke.Node nodes
-        parent (QtGui.QWidget): parent widget
+        node_list (list): list of nuke.Node nodes (optional).
+        parent (QtGui.QWidget): parent widget (optional)
     """
 
     def __init__(self, node_list=None, parent=None):
@@ -416,10 +480,8 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.setWindowTitle('Node spreadsheet')
 
         # Variables:
-        # Initial list of classes, will overwrite this with given nodes classes
         self._node_classes = []
-
-        self._node_list =  []  # make sure it's iterable
+        self._node_list = []  # make sure it's iterable
         self._node_names = []
         self._knob_names = []
         self._hidden_knobs = False
@@ -439,10 +501,10 @@ class NodeTableWidget(QtWidgets.QWidget):
         # show menubar in parents window for osx and some linux dists
         self.menu_bar.setNativeMenuBar(False)
 
-        self.load_selected_action = QtWidgets.QAction('Load selected Nodes', self.menu_bar)
+        self.load_selected_action = QtWidgets.QAction('Load selected Nodes',
+                                                      self.menu_bar)
         self.menu_bar.addAction(self.load_selected_action)
         self.load_selected_action.triggered.connect(self.load_selected)
-
 
         self.show_menu = KeepOpenMenu('Show')  # type: QtWidgets.QMenu
         self.menu_bar.addMenu(self.show_menu)
@@ -509,36 +571,34 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_layout.addWidget(self.knob_name_filter_line_edit)
 
         self.layout.addWidget(self.menu_bar)
-        # self.menu_bar.setCornerWidget(self.filter_widget, QtCore.Qt.TopRightCorner)
         self.layout.addWidget(self.filter_widget)
 
         self.table_view = NodeTableView(self)
 
-        self.table_model = model.NodeTableModel()
+        self.table_model = models.NodeTableModel()
         self.layout.addWidget(self.table_view)
 
         # Filter disabled or enabled knobs:
-
-        self.knob_states_filter_model = model.KnobStatesFilterModel(self)
+        self.knob_states_filter_model = models.KnobStatesFilterModel(self)
         self.knob_states_filter_model.setSourceModel(self.table_model)
         self.disabled_knobs = True
         self.hidden_knobs = False
 
         # Filter by Node name
-        self.node_name_filter_model = model.NodeNameFilterModel(self)
+        self.node_name_filter_model = models.NodeNameFilterModel(self)
         self.node_name_filter_model.setSourceModel(self.knob_states_filter_model)
         # self.node_name_filter_model.setSourceModel(self.table_model)
 
         # Filter by Node Class:
-        self.node_class_filter_model = model.NodeClassFilterModel(self)
+        self.node_class_filter_model = models.NodeClassFilterModel(self)
         self.node_class_filter_model.setSourceModel(self.node_name_filter_model)
 
         # Filter by knob name:
-        self.knob_name_filter_model = model.HeaderHorizontalFilterModel(self)
+        self.knob_name_filter_model = models.HeaderHorizontalFilterModel(self)
         self.knob_name_filter_model.setSourceModel(self.node_class_filter_model)
 
         # Filter empty columns
-        self.empty_column_filter_model = model.EmptyColumnFilterModel(self)
+        self.empty_column_filter_model = models.EmptyColumnFilterModel(self)
         self.empty_column_filter_model.setSourceModel(self.knob_name_filter_model)
 
         # Set model to view
@@ -548,7 +608,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.node_list = node_list or []
 
     def load_selected(self):
-        """sets the displayed nodes to current selection
+        """Sets the node list to current selection.
 
         Returns:
             None
@@ -558,20 +618,16 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_names(self):
-        """Generator that yields the sorted list of current nodes names.
+        """list[str]: sorted list of current nodes
+        names.
 
-        Warnings:
-            Do not use _node_names
-
-        Yields:
-            str: name of node
         """
         node_names = [node.name() for node in self.node_list]
         return sorted(node_names, key=lambda n: n.lower())
 
     @property
     def node_classes(self):
-        """Returns list of node classes
+        """list[str]: sorted list of node classes
 
         If node_list is set, classes are updated to include only
         classes of current nodes else all possible node classes are returned.
@@ -586,10 +642,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def knob_names(self):
-        """Return list of all knob names of current nodes.
-
-        Returns:
-            list: knob names
+        """list[str]: all knob names of current nodes.
         """
         knob_names = set()
         for node in self.node_list:
@@ -600,19 +653,17 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_list(self):
-        """Returns list of loaded nodes before all filtering
+        """list[nuke.Node]: List of loaded nodes before all filtering.
 
-        Returns:
-            list: current nodes
+        Setting this attribute updates all models and warns when loading too
+        many nodes.
         """
-
-        self._node_list = [node for node in self._node_list if nuke_utils.node_exists(node)]
+        self._node_list = [node for node in self._node_list
+                           if nuke_utils.node_exists(node)]
         return self._node_list
 
     @node_list.setter
     def node_list(self, nodes):
-        """Sets nodes and updates models
-        """
         num_nodes = len(nodes)
 
         # Ask for confirmation before loading too many nodes.
@@ -620,7 +671,7 @@ class NodeTableWidget(QtWidgets.QWidget):
             proceed = nuke_utils.ask('Loading {num_nodes} Nodes may take a '
                                      'long time. \n'
                                      'Dou you wish to proceed?'.format(
-                                      num_nodes = num_nodes))
+                                         num_nodes=num_nodes))
 
             if not proceed:
                 return
@@ -629,16 +680,24 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.table_model.node_list = self.node_list
 
         self.node_name_completer.setModel(
-            model.StringListModel(self.node_names))
+            QtCore.QStringListModel(self.node_names))
         self.node_class_completer.setModel(
-            model.StringListModel(self.node_classes))
+            QtCore.QStringListModel(self.node_classes))
         self.knob_name_filter_completer.setModel(
-            model.StringListModel(self.knob_names))
+            QtCore.QStringListModel(self.knob_names))
 
         self.table_view.resizeColumnsToContents()
 
     @QtCore.Slot(bool)
     def hidden_knobs_changed(self, checked=None):
+        """Update the hidden knobs state filter.
+
+        Args:
+            checked (bool): If True, knobs with hidden state are displayed.
+
+        Returns:
+            None
+        """
         # PySide doesn't pass checked state
         if checked is None:
             checked = self.hidden_knobs_action.isChecked()
@@ -647,6 +706,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def hidden_knobs(self):
+        """bool: Show hidden knobs."""
         return self._hidden_knobs
 
     @hidden_knobs.setter
@@ -659,6 +719,14 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @QtCore.Slot(bool)
     def disabled_knobs_changed(self, checked=None):
+        """Update the disabled knobs state filter.
+
+        Args:
+            checked (bool): If True, knobs with disabled state are displayed.
+
+        Returns:
+            None
+        """
         # PySide doesn't pass checked state
         if checked is None:
             checked = self.disabled_knobs_action.isChecked()
@@ -667,6 +735,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def disabled_knobs(self):
+        """bool: Show disabled knobs."""
         return self._disabled_knobs
 
     @disabled_knobs.setter
@@ -679,6 +748,14 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @QtCore.Slot(bool)
     def all_knob_states_changed(self, checked=True):
+        """Update the knob states filter.
+
+        Args:
+            checked: If True, show knobs with hidden or disabled state.
+
+        Returns:
+            None
+        """
         # PySide doesn't pass checked state
         if checked is None:
             checked = self.all_knobs_action.isChecked()
@@ -687,6 +764,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def all_knob_states(self):
+        """bool: Knobs with hidden or disabled knob states are displayed."""
         self._all_knob_states = self.hidden_knobs and self._disabled_knobs
         return self._all_knob_states
 
@@ -697,10 +775,24 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.disabled_knobs = checked
 
     def update_all_knob_states_action(self):
-        self.all_knobs_action.setChecked(all([self.hidden_knobs, self.disabled_knobs]))
+        """Update action (checkbox) 'All' knob states.
+
+        Returns:
+            None
+        """
+        self.all_knobs_action.setChecked(all([self.hidden_knobs,
+                                              self.disabled_knobs]))
 
     @QtCore.Slot(str)
     def knob_name_filter_changed(self, value=None):
+        """Update the knob name filter.
+
+        Args:
+            value (str): list of knob names to display.
+
+        Returns:
+            None
+        """
         if not value:
             value = self.knob_name_filter_line_edit.text()
         self.knob_name_filter = value
@@ -708,6 +800,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def knob_name_filter(self):
+        """str: list of knob names separated by delimiters."""
         return self._knob_name_filter
 
     @knob_name_filter.setter
@@ -721,6 +814,8 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_name_filter(self):
+        """str: list of node names seperated by delimiters.
+        """
         return self._node_name_filter
 
     @node_name_filter.setter
@@ -731,6 +826,14 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @QtCore.Slot(str)
     def node_name_filter_changed(self, node_names):
+        """Update the node names filter.
+
+        Args:
+            node_names (str): list of node names separated by delimiter.
+
+        Returns:
+            None
+        """
         if not node_names:
             node_names = self.node_name_filter_line_edit.text()
         self.node_name_filter = node_names
@@ -738,27 +841,27 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_class_filter(self):
+        """str: List of node classes to display.
+        """
         return self._node_class_filter
 
     @node_class_filter.setter
     def node_class_filter(self, node_classes=None):
-        # TODO: extract to function and create unit test
         self._node_class_filter = node_classes
         self.node_class_filter_model.set_filter_str(node_classes)
         self.empty_column_filter_model.invalidateFilter()
 
     @QtCore.Slot(str)
-    def node_class_filter_changed(self, node_classes = None):
+    def node_class_filter_changed(self, node_classes=None):
+        """Update the node class filter.
+
+        Args:
+            node_classes (str): delimited str list of node Classes to display.
+
+        Returns:
+            None
+        """
         if not node_classes:
             node_classes = self.node_class_filter_line_edit.text()
         self.node_class_filter = node_classes
         self.table_view.resizeColumnsToContents()
-
-
-if __name__ == '__main__':
-    if not QtWidgets.QApplication.instance():
-        app = QtWidgets.QApplication(sys.argv)
-
-    widget = NodeTableWidget()
-    widget.show()
-    app.exec_()
