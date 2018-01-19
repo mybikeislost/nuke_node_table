@@ -79,6 +79,12 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 return knob_editors.ArrayEditor(parent,
                                                 items,
                                                 rows)
+        if isinstance(knob, nuke.Format_Knob):
+
+            combobox = QtWidgets.QComboBox(parent)
+            for format in nuke.formats():
+                combobox.addItem(format.name())
+            return combobox
 
         return super(KnobsItemDelegate, self).createEditor(parent,
                                                            option,
