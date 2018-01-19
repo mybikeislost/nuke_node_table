@@ -685,6 +685,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return QtCore.Qt.Unchecked
             if role == QtCore.Qt.DisplayRole:
                 return None
+
         elif isinstance(knob, nuke.IArray_Knob):
             if (role == QtCore.Qt.DisplayRole) or (role == QtCore.Qt.EditRole):
                 # dim = knob.dimensions()
@@ -697,6 +698,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return str(value)
                 else:
                     return value
+
         elif isinstance(knob, nuke.Transform2d_Knob):
             if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
                 matrix_list = []
@@ -711,6 +713,11 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     return str(matrix_list)
                 else:
                     return matrix_list
+
+        elif isinstance(knob, nuke.Format_Knob):
+            if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+                format = knob.value()  # type: nuke.Format
+                return format.name()
 
         # Return data for all other knob classes.
         if role == QtCore.Qt.DisplayRole:
