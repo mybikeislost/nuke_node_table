@@ -404,7 +404,6 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             self.removeRows(parent=QtCore.QModelIndex(),
                             row=remove_index,
                             count=1)
-            return
 
         for node in new_nodes:
             insert_index = bisect_case_insensitive(self.node_names,
@@ -462,13 +461,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         new_header_knobs = {}
 
         # collect all knobs to display
-        for node in self.node_list:
+        # Iterating over copy of the node list to not saw off the tree
+        # we're sitting on.
+        for node in list(self.node_list):
             # If node was deleted, remove node and return.
             if not nuke_utils.node_exists(node):
                 self.removeRows(row=self.node_list.index(node),
                                 count=1,
-                                parent=QtCore.QModelIndex())
-                return
+                                parent=QtCore.QModelIndex(),
+                                setup_model_data=False)
+                # Continue with the next node, since we removed this node.
+                continue
 
             # noinspection PyUnresolvedReferences
             for knob_name, knob in node.knobs().items():
@@ -576,13 +579,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         return True
 
-    def removeRows(self, row, count, parent):
+    def removeRows(self, row, count, parent, setup_model_data=True):
         """Remove consecutive rows.
 
         Args:
             row (int): first row to remove
             count (int): number of rows to remove
             parent (QtCore.QModelIndex): parent index
+            setup_model_data (bool): setup model after removing row.
+                Disable to avoid recursion.
 
         Returns:
             bool: True if successfully removed.
@@ -594,7 +599,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         self.endRemoveRows()
 
         # Update horizontal header.
-        self.setup_model_data()
+        if setup_model_data:
+            self.setup_model_data()
         return True
 
     def get_background_color(self, row, node, knob):
