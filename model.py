@@ -374,7 +374,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         """List of current knobs.
 
         Warnings:
-            Currently, the knob list onyly contains one knob per name.
+            Currently, the knob list only contains one knob per name.
             If there are multiple knobs with different Classes sharing the
             same name, the Filters will be unreliable.
 
@@ -397,7 +397,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
     @node_list.setter
     def node_list(self, nodes):
         new_nodes = set(nodes) - set(self.node_list)
-        remove_nodes = set(self.node_list)  - set(nodes)
+        remove_nodes = set(self.node_list) - set(nodes)
 
         for node in remove_nodes:
             remove_index = self.node_list.index(node)
