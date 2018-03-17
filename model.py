@@ -757,11 +757,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             return string
 
     def setData(self, index, value, role):
-        """sets edited data to node
+        """Sets edited data to node.
 
         Warnings:
             Currently this only works for a few knob types.
-            Array knobs are not supported
 
         Args:
             index (QtCore.QModelIndex): current index
@@ -769,7 +768,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             role (QtCore.Qt.int): current Role. Only EditRole supported
 
         Returns:
-            True if successfully set knob to new value, otherwise False
+            bool: True if successfully set knob to new value, otherwise False.
+
         """
         if not index.isValid():
             return
@@ -796,10 +796,19 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
                 elif isinstance(value, basestring):
                     value = self.safe_string(value)
+                    edited = knob.setValue(value)
 
-                edited = knob.setValue(value)
+                else:
+                    edited = knob.setValue(value)
 
-                if edited:
+                # Contrary to the reference, nuke.Knob.setValue() does not
+                # always return True but None if value was set successfully:
+                # nuke.createNode('NoOp')['label'].setValue('alsdkjf')
+                # >>> None
+                # Therefore we must emit dataChanged() even when
+                # the returned value from setValue() is None. Otherwise we
+                # cause lagging in the UI.
+                if edited or edited is None:
                     # noinspection PyUnresolvedReferences
                     self.dataChanged.emit(index, index)
                     return True
