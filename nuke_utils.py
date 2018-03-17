@@ -18,7 +18,8 @@ except ImportError:
 
 # Import internal modules.
 # pylint: disable=wrong-import-position
-from NodeTable import constants
+from NodeTable.constants import PACKAGE_NICE_NAME
+from NodeTable.constants import SHADE_DAG_NODES_NON_COMMERCIAL
 
 
 LOG = logging.getLogger(__name__)
@@ -210,7 +211,7 @@ def shade_dag_nodes_enabled():
         pref_node = nuke.toNode("preferences")
         shaded = pref_node['ShadeDAGNodes'].value()
     else:
-        shaded = constants.SHADE_DAG_NODES_NON_COMMERCIAL
+        shaded = SHADE_DAG_NODES_NON_COMMERCIAL
 
     return shaded
 
@@ -229,7 +230,7 @@ def ask(prompt=""):
         reply = nuke.ask(prompt)
     else:
         reply = QtWidgets.QMessageBox.question(None,
-                                               constants.PACKAGE_NICE_NAME,
+                                               PACKAGE_NICE_NAME,
                                                prompt,
                                                (QtWidgets.QMessageBox.Yes |
                                                 QtWidgets.QMessageBox.No))
