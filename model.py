@@ -385,13 +385,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
     @property
     def knob_names(self):
-        """Names of all knobs.
-
-        When setting this attribute, only new nodes are added.
-
-        Returns:
-            list: list on names (str).
-        """
+        """list:Names of all knobs."""
         return [knob.name() for knob in self.knob_list]
 
     @node_list.setter
