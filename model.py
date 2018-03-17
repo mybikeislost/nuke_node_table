@@ -875,7 +875,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
             node = self.node_list[section]  # type: nuke.Node
             if not nuke_utils.node_exists(node):
-                self.removeRows(section, 1, QtCore.QModelIndex())
+                self.removeRows(row=section,
+                                count=1,
+                                parent= QtCore.QModelIndex())
                 return
 
             if role == QtCore.Qt.DisplayRole:
