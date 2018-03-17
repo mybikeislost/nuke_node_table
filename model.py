@@ -188,7 +188,7 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
         Returns:
             bool: true if disabled knobs are shown
         """
-        return self.disabled_knobs
+        return self._disabled_knobs
 
     @disabled_knobs.setter
     def disabled_knobs(self, disabled):
