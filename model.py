@@ -805,18 +805,19 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             QtCore.Qt.ItemFlag: flags for current cell
         """
         row = index.row()
-
         node = self.node_list[row]
+
+        flags = QtCore.Qt.NoItemFlags
+
         if not nuke_utils.node_exists(node):
-            self.removeRows(row, 1, QtCore.QModelIndex())
-            return 0
+            # Only return NoTIemFlags and don't remove the row here.
+            # beginRemoveRows() calls flags() causing infinite recursion.
+            return flags
 
         knob = self.data(index, QtCore.Qt.UserRole)  # type: nuke.Knob
 
         if not knob:
-            return QtCore.Qt.NoItemFlags
-
-        flags = 0
+            return flags
 
         if isinstance(knob, nuke.Boolean_Knob):
             flags |= QtCore.Qt.ItemIsUserCheckable
