@@ -263,6 +263,24 @@ class NodeNameFilterModel(ListFilterModel):
 
     """
 
+    def __init__(self, parent):
+        super(NodeNameFilterModel, self).__init__(parent)
+        self._nodes_in_groups = False
+
+    @property
+    def nodes_in_groups(self):
+        """bool: Show nodes in groups.
+
+        Effectively filters nodes with dots in node.fullName().
+
+        """
+        return self._nodes_in_groups
+
+    @nodes_in_groups.setter
+    def nodes_in_groups(self, show):
+        self._nodes_in_groups = show
+        self.invalidateFilter()
+
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsRow(self, row, parent):
         """filter header with set filter
@@ -280,7 +298,10 @@ class NodeNameFilterModel(ListFilterModel):
         header_name = self.sourceModel().headerData(row,
                                                     QtCore.Qt.Vertical,
                                                     QtCore.Qt.DisplayRole)
-        return self.match(header_name)
+        accept = self.match(header_name)
+        accept &= '.' not in header_name or self.nodes_in_groups
+
+        return accept
 
 
 class NodeClassFilterModel(ListFilterModel):
@@ -871,7 +892,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 return
 
             if role == QtCore.Qt.DisplayRole:
-                return node.name()
+                return node.fullName()
             elif role == QtCore.Qt.UserRole:
                 return node
             elif role == QtCore.Qt.BackgroundRole:

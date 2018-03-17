@@ -531,7 +531,12 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.knobs_menu.addAction(self.disabled_knobs_action)
         self.disabled_knobs_action.triggered[bool].connect(self.disabled_knobs_changed)
 
-        # self.nodes_classes_menu = self.show_menu.addMenu('Nodes')
+        # Nodes menu
+        self.nodes_menu = self.show_menu.addMenu('Nodes')
+        self.nodes_grouped_action = CheckAction('in selected groups')
+        self.nodes_menu.addAction(self.nodes_grouped_action)
+        self.nodes_grouped_action.triggered[bool].connect(
+            self.disabled_knobs_changed)
 
         # Filter Widget
         self.filter_widget = QtWidgets.QWidget(self)
@@ -620,7 +625,7 @@ class NodeTableWidget(QtWidgets.QWidget):
             None
         """
 
-        self.node_list = nuke_utils.get_selected_nodes()
+        self.node_list = nuke_utils.get_selected_nodes(recurse_groups=True)
 
     @property
     def node_names(self):
@@ -871,3 +876,29 @@ class NodeTableWidget(QtWidgets.QWidget):
             node_classes = self.node_class_filter_line_edit.text()
         self.node_class_filter = node_classes
         self.table_view.resizeColumnsToContents()
+
+    @property
+    def node_grouped(self):
+        """bool: Show nodes in selected groups.
+        """
+        return self._node_grouped
+
+    @node_grouped.setter
+    def node_grouped(self, node_classes=None):
+        self._node_grouped = node_classes
+
+    @QtCore.Slot(str)
+    def node_grouped_changed(self, checked=None):
+        """Update the node class filter.
+
+        Args:
+            node_classes (str): delimited str list of node Classes to display.
+
+        Returns:
+            None
+        """
+        # PySide doesn't pass checked state
+        if checked is None:
+            checked = self.nodes_grouped_action.isChecked()
+        self.node_grouped = checked
+        self.knob_name_filter_model.nodes_in_groups = checked

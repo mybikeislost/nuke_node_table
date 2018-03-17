@@ -44,19 +44,27 @@ def node_exists(node):
     return True
 
 
-def get_selected_nodes(recurse_groups=False):
-    """get current selection
+def get_selected_nodes(recurse_groups=False, group=None):
+    """Get current node selection.
+
+    Args:
+        recurse_groups (bool): recursively find selected nodes.
+        group (nuke.Node): parent group node. Using root level if None.
 
     Returns:
         list: of nuke.Node
+
     """
-    selection = nuke.selectedNodes()
+    if group:
+        with group:
+            selection = nuke.selectedNodes()
+    else:
+        selection = nuke.selectedNodes()
 
     if recurse_groups:
         for node in selection:
             if node.Class() == 'Group':
-                with node:
-                    selection += get_selected_nodes(recurse_groups)
+                selection += get_selected_nodes(recurse_groups, node)
 
     return selection
 
