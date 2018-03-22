@@ -299,14 +299,15 @@ class NodeNameFilterModel(ListFilterModel):
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsRow(self, row, parent):
-        """filter header with set filter
+        """Filter header with set filter.
 
         Args:
             row (int): current row
             parent (QtCore.QModelIndex():
 
         Returns:
-            bool: true if header matches filter
+            bool: True if header matches filter.
+
         """
         if not self.filter_list:
             return True
@@ -330,11 +331,12 @@ class NodeClassFilterModel(ListFilterModel):
         """Filter by node classes.
 
         Args:
-            row (int): current row
-            parent (QtCore.QModelIndex): parent index.
+            row (int): Current row.
+            parent (QtCore.QModelIndex): Parent index.
 
         Returns:
             bool: True if node's class matches the filter.
+
         """
         if not self.filter_list:
             return True
@@ -351,18 +353,20 @@ class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
 
     Notes:
         this Filter is expensive: O=pow(n,2)
+
     """
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsColumn(self, column, parent):
-        """for every node check if current columns name is in its knobs
+        """For every node check if current columns name is in its knobs.
 
         Args:
-            column (int): current column
-            parent (QtCore.QModelIndex):
+            column (int): Current column.
+            parent (QtCore.QModelIndex): Parent index.
 
         Returns:
-            bool: true if at least one node has a knob for current column
+            bool: true if at least one node has a knob for current column.
+
         """
         header_name = self.sourceModel().headerData(column,
                                                     QtCore.Qt.Horizontal,
@@ -410,10 +414,11 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
     @property
     def knob_names(self):
-        """list:Names of all knobs.
+        """list: Names of all knobs.
 
         Note: this property is obsolete at the moment but might be needed
             when implementing header text from knobs label.
+
         """
         return self.knob_list
 
@@ -437,7 +442,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                             items=[node])
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        """number of nodes
+        """Number of nodes.
 
         Args:
             parent (QtCore.QModelIndex): parent index
@@ -466,6 +471,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         Returns:
             int: number of columns
+
         """
         if parent.isValid():
             return 0
@@ -542,7 +548,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                                    items=[knob.name()])
 
     def insertColumns(self, column, count, parent, items):
-        """Add items to header
+        """Add items to header.
 
         Args:
             parent (QtCore.QModelIndex): parent index
@@ -552,8 +558,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         Returns:
             bool: True if items added
-        """
 
+        """
         count = len(items)
         self.beginInsertColumns(parent,
                                 column,
@@ -564,7 +570,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return True
 
     def removeColumns(self, column, count, parent):
-        """Remove columns
+        """Remove columns.
 
         Args:
             parent (QtCore.QModelIndex): parent index
@@ -573,6 +579,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         Returns:
             bool: True if successfully removed
+
         """
         self.beginRemoveColumns(parent, column, column + count - 1)
 
@@ -582,7 +589,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return True
 
     def insertRows(self, row, count, parent, items):
-        """Add consecutive rows
+        """Add consecutive rows.
 
         Args:
             parent (QtCore.QModelIndex): parent index
@@ -592,8 +599,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         Returns:
             bool: True if items added
-        """
 
+        """
         count = len(items)
         self.beginInsertRows(parent,
                              row,
@@ -634,8 +641,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         """Return the cell color.
 
         If a knob is animated, return colors matching Nuke's property panel.
-        Else blend the nodes color with the apps palette color at certain
+        Otherwise blend the nodes color with the apps palette color at defined
         amounts, depending on weather the node has a knob or not.
+
+        Args:
+            row (int): The row of the cell.
+            node (nuke.Node): Current node.
+            knob (nuke.Knob): Current knob.
+
+        Returns:
+            QtGui.QBrush: the background of the cell.
+
         """
         if knob and knob.isAnimated():
             # noinspection PyArgumentList
@@ -666,7 +682,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             return QtGui.QBrush(QtGui.QColor().fromRgbF(*color))
 
     def data(self, index, role):
-        """Returns the header data.
+        """Return the data.
 
         For UserRole this returns the node or knob, depending on given
         orientation.
@@ -681,8 +697,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         Returns:
             object
-        """
 
+        """
         row = index.row()
         col = index.column()
 
