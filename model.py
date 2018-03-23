@@ -802,18 +802,18 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                     edited = knob.setValue(value)
 
                 # Contrary to the reference, nuke.Knob.setValue() does not
-                # always return True but None if value was set successfully:
-                # nuke.createNode('NoOp')['label'].setValue('alsdkjf')
+                # always return True but None or even False if value was set
+                # successfully:
+                # nuke.createNode('NoOp')['label'].setValue('lorem ipsum')
                 # >>> None
                 # Therefore we must emit dataChanged() even when
-                # the returned value from setValue() is None. Otherwise we
-                # cause lagging in the UI.
-                if edited or edited is None:
-                    # noinspection PyUnresolvedReferences
-                    self.dataChanged.emit(index, index)
-                    return True
-                else:
-                    LOG.warning('could not edit knob %s ', knob_name)
+                # the returned value from setValue() is None or True.
+                # Otherwise we cause lagging in the UI.
+
+                # noinspection PyUnresolvedReferences
+                self.dataChanged.emit(index, index)
+                return True
+
         return False
 
     def flags(self, index):
