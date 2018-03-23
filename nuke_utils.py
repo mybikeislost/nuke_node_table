@@ -62,9 +62,10 @@ def to_hex(color_rgb):
     Returns:
         str: color in hex notation
     """
-    return  int('%02x%02x%02x%02x' % (color_rgb[0] * 255,
-                                      color_rgb[1] * 255,
-                                      color_rgb[2] * 255, 1), 16)
+    return  int('%02x%02x%02x%02x' % (int(color_rgb[0] * 255),
+                                      int(color_rgb[1] * 255),
+                                      int(color_rgb[2] * 255),
+                                      int(color_rgb[3] * 255)), 16)
 
 
 def to_rgb(color_hex):
@@ -81,7 +82,7 @@ def to_rgb(color_hex):
     red = (0xFF & color_hex >> 24) / 255.0
     green = (0xFF & color_hex >> 16) / 255.0
     blue = (0xFF & color_hex >> 8) / 255.0
-    alpha = (0xFF & color_hex >> 1) / 255.0
+    alpha = (0xFF & color_hex >> 0) / 255.0
 
     return red, green, blue, alpha
 
