@@ -55,7 +55,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 return knob_editors.ColorEditor(parent)
 
             elif isinstance(knob, nuke.Boolean_Knob):
-            #    return QtWidgets.QCheckBox()
+                # return QtWidgets.QCheckBox()
                 return super(KnobsItemDelegate, self).createEditor(parent,
                                                                    option,
                                                                    index)
@@ -483,7 +483,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         super(NodeTableWidget, self).__init__(parent)
 
         # Widget
-        self.setWindowTitle('Node spreadsheet')
+        self.setWindowTitle(constants.PACKAGE_NICE_NAME)
 
         # Variables:
         self._node_classes = []
