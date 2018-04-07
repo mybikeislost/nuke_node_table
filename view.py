@@ -31,6 +31,29 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         super(KnobsItemDelegate, self).__init__()
         self.parent = parent
 
+    def paint(self, painter, option, index):
+        
+        model = index.model()  # type:models.NodeTableModel
+        knob = model.data(index, QtCore.Qt.UserRole)
+        
+        
+        if isinstance(knob, nuke.Boolean_Knob):
+            checkbox = QtWidgets.QStyleOptionButton()
+            checkbox.rect = option.rect
+    
+            checked = index.data(QtCore.Qt.EditRole);
+            if (checked):
+                checkbox.state |= QtWidgets.QStyle.State_On
+    
+            else:
+                checkbox.state |= QtWidgets.QStyle.State_Off
+    
+            style = QtWidgets.QApplication.style()
+            style.drawControl(QtWidgets.QStyle.CE_CheckBox, checkbox, painter)
+            
+        else:
+            super(KnobsItemDelegate, self).paint(painter, option, index)
+
     # pylint: disable=invalid-name
     def createEditor(self, parent, option, index):
         """
