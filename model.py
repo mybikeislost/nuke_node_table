@@ -690,12 +690,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             return
 
         if isinstance(knob, nuke.Boolean_Knob):
-            if role == QtCore.Qt.CheckStateRole:
-                if knob.value():
-                    return QtCore.Qt.Checked
-                else:
-                    return QtCore.Qt.Unchecked
-            if role == QtCore.Qt.DisplayRole:
+            if role in [QtCore.Qt.CheckStateRole, QtCore.Qt.DisplayRole]:
                 return None
 
         elif isinstance(knob, nuke.IArray_Knob):
@@ -841,8 +836,8 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         if not knob:
             return flags
 
-        if isinstance(knob, nuke.Boolean_Knob):
-            flags |= QtCore.Qt.ItemIsUserCheckable
+        #if isinstance(knob, nuke.Boolean_Knob):
+        #    flags |= QtCore.Qt.ItemIsUserCheckable
 
         if knob.enabled():
             flags |= QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable

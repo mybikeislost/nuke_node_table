@@ -22,37 +22,14 @@ from NodeTable import knob_editors
 from NodeTable import nuke_utils
 from NodeTable import model as models
 from NodeTable import constants
+from NodeTable.delegate import CheckBoxDelegate
 
 
-class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
+class KnobsItemDelegate(CheckBoxDelegate):
     """Delegate that offer custom editors for various nuke.Knob classes."""
 
     def __init__(self, parent):
-        super(KnobsItemDelegate, self).__init__()
-        self.parent = parent
-
-    def paint(self, painter, option, index):
-        
-        model = index.model()  # type:models.NodeTableModel
-        knob = model.data(index, QtCore.Qt.UserRole)
-        
-        
-        if isinstance(knob, nuke.Boolean_Knob):
-            checkbox = QtWidgets.QStyleOptionButton()
-            checkbox.rect = option.rect
-    
-            checked = index.data(QtCore.Qt.EditRole);
-            if (checked):
-                checkbox.state |= QtWidgets.QStyle.State_On
-    
-            else:
-                checkbox.state |= QtWidgets.QStyle.State_Off
-    
-            style = QtWidgets.QApplication.style()
-            style.drawControl(QtWidgets.QStyle.CE_CheckBox, checkbox, painter)
-            
-        else:
-            super(KnobsItemDelegate, self).paint(painter, option, index)
+        super(KnobsItemDelegate, self).__init__(parent)
 
     # pylint: disable=invalid-name
     def createEditor(self, parent, option, index):
@@ -78,7 +55,6 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 return knob_editors.ColorEditor(parent)
 
             elif isinstance(knob, nuke.Boolean_Knob):
-                # return QtWidgets.QCheckBox()
                 return super(KnobsItemDelegate, self).createEditor(parent,
                                                                    option,
                                                                    index)
@@ -156,9 +132,9 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
         if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
 
             if isinstance(knob, nuke.Boolean_Knob):
-                super(KnobsItemDelegate, self).setModelData(editor,
-                                                            model,
-                                                            index)
+                return super(KnobsItemDelegate, self).setModelData(editor,
+                                                                   model,
+                                                                   index)
 
             elif isinstance(knob, nuke.Enumeration_Knob):
                 data = editor.currentText()
@@ -167,13 +143,13 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
                 data = editor.get_editor_data()
 
             if data:
-                model.setData(index, data, QtCore.Qt.EditRole)
+                return model.setData(index, data, QtCore.Qt.EditRole)
             else:
-                super(KnobsItemDelegate, self).setModelData(editor,
+                return super(KnobsItemDelegate, self).setModelData(editor,
                                                             model,
                                                             index)
         else:
-            super(KnobsItemDelegate, self).setModelData(editor,
+            return super(KnobsItemDelegate, self).setModelData(editor,
                                                         model,
                                                         index)
     # pylint: disable=invalid-name
@@ -361,7 +337,8 @@ class NodeTableView(QtWidgets.QTableView):
         """
         if event.button() == QtCore.Qt.LeftButton:
             index = self.indexAt(event.pos())
-            self.edit(index)
+            if index.isValid():
+                self.edit(index)
         if event.button() == QtCore.Qt.RightButton:
             # TODO: implement right click options
             pass
@@ -381,6 +358,13 @@ class NodeTableView(QtWidgets.QTableView):
         super(NodeTableView, self).commitData(editor)
 
         # self.currentIndex() is the QModelIndex of the cell just edited
+        current_index = self.currentIndex()  # type: QtCore.QModelIndex
+
+        # Return early if nothing is selected. This can happen when editing
+        # a checkbox that doesn't rely on selection.
+        if not current_index.isValid():
+            return
+
         _model = self.currentIndex().model()
         # get the value that the user just submitted
         value = _model.data(self.currentIndex(), QtCore.Qt.EditRole)
