@@ -80,7 +80,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
                     self.setModelData(None, model, index)
                     self.parent().commitData(None)
                     pass
-                return True
+                return False
         return False
 
     def setModelData(self, editor, model, index):
