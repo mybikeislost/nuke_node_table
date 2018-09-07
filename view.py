@@ -153,6 +153,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             super(KnobsItemDelegate, self).setModelData(editor,
                                                         model,
                                                         index)
+
     # pylint: disable=invalid-name
     def updateEditorGeometry(self, editor, option, index):
         """
@@ -208,6 +209,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             super(KnobsItemDelegate, self).updateEditorGeometry(editor,
                                                                 option,
                                                                 index)
+
 # pylint: disable=invalid-name
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
@@ -500,6 +502,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self._node_class_filter = None
 
         # Content
+        # TODO: untangle this bad mix of ui and controller functions.
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setContentsMargins(0, 0, 0, 0)

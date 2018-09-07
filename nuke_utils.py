@@ -62,7 +62,6 @@ def get_selected_nodes(recurse_groups=False):
     return selection
 
 
-
 def to_hex(color_rgb):
     """convert rgb color values to hex
 
