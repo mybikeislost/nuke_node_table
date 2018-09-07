@@ -153,6 +153,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             super(KnobsItemDelegate, self).setModelData(editor,
                                                         model,
                                                         index)
+
     # pylint: disable=invalid-name
     def updateEditorGeometry(self, editor, option, index):
         """
@@ -208,6 +209,7 @@ class KnobsItemDelegate(QtWidgets.QStyledItemDelegate):
             super(KnobsItemDelegate, self).updateEditorGeometry(editor,
                                                                 option,
                                                                 index)
+
 # pylint: disable=invalid-name
 class NodeHeaderView(QtWidgets.QHeaderView):
     """This header view selects and zooms to node of clicked header section
@@ -493,12 +495,14 @@ class NodeTableWidget(QtWidgets.QWidget):
         self._hidden_knobs = False
         self._all_knob_states = False
         self._disabled_knobs = False
+        self._grouped_nodes = False
         self._knob_name_filter = None
         self._node_name_filter = None
         self._node_class_filter = None
         self._node_class_filter = None
 
         # Content
+        # TODO: untangle this bad mix of ui and controller functions.
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -531,7 +535,10 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.knobs_menu.addAction(self.disabled_knobs_action)
         self.disabled_knobs_action.triggered[bool].connect(self.disabled_knobs_changed)
 
-        # self.nodes_classes_menu = self.show_menu.addMenu('Nodes')
+        self.nodes_menu = self.show_menu.addMenu('Nodes')
+        self.grouped_nodes_action = CheckAction('grouped')
+        self.nodes_menu.addAction(self.grouped_nodes_action)
+        self.grouped_nodes_action.triggered[bool].connect(self.grouped_nodes_changed)
 
         # Filter Widget
         self.filter_widget = QtWidgets.QWidget(self)
@@ -620,7 +627,7 @@ class NodeTableWidget(QtWidgets.QWidget):
             None
         """
 
-        self.node_list = nuke_utils.get_selected_nodes()
+        self.node_list = nuke_utils.get_selected_nodes(self.grouped_nodes)
 
     @property
     def node_names(self):
@@ -693,6 +700,33 @@ class NodeTableWidget(QtWidgets.QWidget):
             QtCore.QStringListModel(self.knob_names))
 
         self.table_view.resizeColumnsToContents()
+
+    @QtCore.Slot(bool)
+    def grouped_nodes_changed(self, checked=None):
+        """Update the hidden knobs state filter.
+
+        Args:
+            checked (bool): If True, knobs with hidden state are displayed.
+
+        Returns:
+            None
+        """
+        # PySide doesn't pass checked state
+        if checked is None:
+            checked = self.grouped_nodes_action.isChecked()
+        self.grouped_nodes = checked
+        self.table_view.resizeColumnsToContents()
+
+    @property
+    def grouped_nodes(self):
+        """bool: Show selected nodes inside of group nodes."""
+        return self._grouped_nodes
+
+    @grouped_nodes.setter
+    def grouped_nodes(self, checked):
+        self._grouped_nodes = checked
+        self.load_selected()
+        self.grouped_nodes_action.setChecked(checked)
 
     @QtCore.Slot(bool)
     def hidden_knobs_changed(self, checked=None):

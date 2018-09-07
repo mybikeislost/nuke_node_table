@@ -44,13 +44,22 @@ def node_exists(node):
 
     return True
 
-def get_selected_nodes():
+
+def get_selected_nodes(recurse_groups=False):
     """get current selection
 
     Returns:
         list: of nuke.Node
     """
-    return nuke.selectedNodes()
+    selection = nuke.selectedNodes()
+
+    if recurse_groups:
+        for node in selection:
+            if node.Class() == 'Group':
+                with node:
+                    selection += get_selected_nodes(recurse_groups)
+
+    return selection
 
 
 def to_hex(color_rgb):
