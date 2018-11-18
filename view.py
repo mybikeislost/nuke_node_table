@@ -19,7 +19,7 @@ else:
 # Import internal modules.
 # pylint: disable=wrong-import-position
 from NodeTable import nuke_utils
-from NodeTable import model as models
+from NodeTable import model
 from NodeTable import constants
 from NodeTable import delegate
 
@@ -69,8 +69,8 @@ class NodeHeaderView(QtWidgets.QHeaderView):
             gradient = QtGui.QLinearGradient(rect.topLeft(),
                                              rect.bottomLeft())
             gradient.setColorAt(0, bg_brush.color())
-            gradient_end_color = models.scalar(bg_brush.color().getRgbF()[:3],
-                                               0.6)
+            gradient_end_color = model.scalar(bg_brush.color().getRgbF()[:3],
+                                              0.6)
             gradient.setColorAt(1, QtGui.QColor.fromRgbF(*gradient_end_color))
             painter.fillRect(rect, gradient)
         else:
@@ -410,30 +410,30 @@ class NodeTableWidget(QtWidgets.QWidget):
 
         self.table_view = NodeTableView(self)
 
-        self.table_model = models.NodeTableModel()
+        self.table_model = model.NodeTableModel()
         self.layout.addWidget(self.table_view)
 
         # Filter disabled or enabled knobs:
-        self.knob_states_filter_model = models.KnobStatesFilterModel(self)
+        self.knob_states_filter_model = model.KnobStatesFilterModel(self)
         self.knob_states_filter_model.setSourceModel(self.table_model)
         self.disabled_knobs = True
         self.hidden_knobs = False
 
         # Filter by Node name
-        self.node_name_filter_model = models.NodeNameFilterModel(self)
+        self.node_name_filter_model = model.NodeNameFilterModel(self)
         self.node_name_filter_model.setSourceModel(self.knob_states_filter_model)
         # self.node_name_filter_model.setSourceModel(self.table_model)
 
         # Filter by Node Class:
-        self.node_class_filter_model = models.NodeClassFilterModel(self)
+        self.node_class_filter_model = model.NodeClassFilterModel(self)
         self.node_class_filter_model.setSourceModel(self.node_name_filter_model)
 
         # Filter by knob name:
-        self.knob_name_filter_model = models.HeaderHorizontalFilterModel(self)
+        self.knob_name_filter_model = model.HeaderHorizontalFilterModel(self)
         self.knob_name_filter_model.setSourceModel(self.node_class_filter_model)
 
         # Filter empty columns
-        self.empty_column_filter_model = models.EmptyColumnFilterModel(self)
+        self.empty_column_filter_model = model.EmptyColumnFilterModel(self)
         self.empty_column_filter_model.setSourceModel(self.knob_name_filter_model)
 
         # Set model to view
