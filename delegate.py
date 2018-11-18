@@ -91,13 +91,25 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
         if event.button() == QtCore.Qt.LeftButton:
             checkbox_rect = self.get_check_box_rect(option)
-            if checkbox_rect.contains(event.pos()):
-                if event.type() == QtCore.QEvent.Type.MouseButtonRelease:
-                    self.setModelData(None, model, index)
-                    self.parent().commitData(None)
-                    pass
-                return False
-        return False
+            if event.type() == QtCore.QEvent.Type.MouseButtonPress:
+                # Record the event pos at start of dragging selection.
+                # Use it later to not update checkbox if the mouse ends on a checkbox
+                # but did not start dragging in the same checkbox.
+                self.mouse_pressed_pos = event.pos()
+
+            elif event.type() == QtCore.QEvent.Type.MouseButtonRelease:
+                if checkbox_rect.contains(event.pos()):
+                    # Prevent toggling checkbox when dragging selection.
+                    if self.mouse_pressed_pos and checkbox_rect.contains(self.mouse_pressed_pos):
+                        self.setModelData(None, model, index)
+                        self.parent().commitData(None)
+                self.mouse_pressed_pos = None
+                return True
+
+        return super(CheckBoxDelegate, self).editorEvent(event,
+                                                         model,
+                                                         option,
+                                                         index)
 
     def setModelData(self, editor, model, index):
         """ Toggle the boolean state in the model.
