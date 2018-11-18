@@ -1,10 +1,18 @@
 # Keeping this for development to enable auto-completion.
 # pylint: disable=no-name-in-module
+import math
 if __name__ == '__main__':
-    from PySide2 import QtCore, QtGui, QtWidgets
+    from PySide2 import QtCore, QtWidgets
     __binding__ = 'PySide2'
 else:
-    from Qt import QtCore, QtGui, QtWidgets, __binding__
+    from Qt import QtCore, QtWidgets
+
+# Import third-party modules
+import nuke
+
+# Import local modules
+from NodeTable import constants
+from NodeTable import knob_editors
 
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
@@ -125,3 +133,188 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         check_box_top_left_corner = QtCore.QPoint(x + w / 2 -  self.default_check_box_rect.width() / 2,
                                                   y + h / 2 -  self.default_check_box_rect.height() / 2)
         return QtCore.QRect(check_box_top_left_corner, self.default_check_box_rect.size())
+
+
+class KnobsItemDelegate(CheckBoxDelegate):
+    """Delegate that offer custom editors for various nuke.Knob classes."""
+
+    def __init__(self, parent):
+        super(KnobsItemDelegate, self).__init__(parent)
+
+    # pylint: disable=invalid-name
+    def createEditor(self, parent, option, index):
+        """
+
+        Args:
+            parent (QtWidgets.QWidget): parent widget
+            option (QtWidget.QStyleOptionViewItem):
+            index (QtCore.QModelIndex): current index
+
+        Returns:
+            new editor
+        """
+        model = index.model() # type: models.NodeTableModel
+        # row = index.row() # type: int
+        # column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+            rows = 1
+            if isinstance(knob, nuke.AColor_Knob):
+                return knob_editors.ColorEditor(parent)
+
+            elif isinstance(knob, nuke.Boolean_Knob):
+                return super(KnobsItemDelegate, self).createEditor(parent,
+                                                                   option,
+                                                                   index)
+
+            elif isinstance(knob, nuke.Enumeration_Knob):
+
+                combobox = QtWidgets.QComboBox(parent)
+                for value in knob.values():
+                    combobox.addItem(value)
+                return combobox
+
+            elif isinstance(knob, nuke.IArray_Knob):
+                rows = knob.height()  # type: int
+
+            elif isinstance(knob, nuke.Transform2d_Knob):
+                rows = math.sqrt(len(model.data(index, QtCore.Qt.EditRole)))
+
+            if isinstance(model.data(index, QtCore.Qt.EditRole),
+                          (list, tuple)):
+                items = len(model.data(index, QtCore.Qt.EditRole))
+                return knob_editors.ArrayEditor(parent,
+                                                items,
+                                                rows)
+        if isinstance(knob, nuke.Format_Knob):
+
+            combobox = QtWidgets.QComboBox(parent)
+            for format in nuke.formats():
+                combobox.addItem(format.name())
+            return combobox
+
+        return super(KnobsItemDelegate, self).createEditor(parent,
+                                                           option,
+                                                           index)
+
+    # pylint: disable=invalid-name
+    def setEditorData(self, editor, index):
+        """sets editor to knobs value
+
+        Args:
+            editor (QtWidgets.QWidget):
+            index (QtCore.QModelIndex): current index
+
+        Returns: None
+        """
+
+        model = index.model() # type: model.NodeTableModel
+        data = model.data(index, QtCore.Qt.EditRole)
+
+        # Array knobs:
+        if isinstance(data, (list, tuple)):
+            editor.set_editor_data(data)
+        else:
+            super(KnobsItemDelegate, self).setEditorData(editor, index)
+
+    # pylint: disable=invalid-name
+    def setModelData(self, editor, model, index):
+        """sets new value to model
+
+        Args:
+            editor (knob_editors.QWidget):
+            model (QtCore.QAbstractTableModel):
+            index (QtCore.QModelIndex): current index
+
+        Returns:
+            None
+
+        """
+
+        model = index.model()  # type: model.NodeTableModel
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+        data = None
+
+        # Array knobs:
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+
+            if isinstance(knob, nuke.Boolean_Knob):
+                return super(KnobsItemDelegate, self).setModelData(editor,
+                                                                   model,
+                                                                   index)
+
+            elif isinstance(knob, nuke.Enumeration_Knob):
+                data = editor.currentText()
+
+            elif isinstance(editor, knob_editors.ArrayEditor):
+                data = editor.get_editor_data()
+
+            if data:
+                return model.setData(index, data, QtCore.Qt.EditRole)
+            else:
+                return super(KnobsItemDelegate, self).setModelData(editor,
+                                                            model,
+                                                            index)
+        else:
+            return super(KnobsItemDelegate, self).setModelData(editor,
+                                                        model,
+                                                        index)
+
+    # pylint: disable=invalid-name
+    def updateEditorGeometry(self, editor, option, index):
+        """
+
+        Args:
+            editor (QtWidget.QWidget):
+            option (QtWidget.QStyleOptionViewItem):
+            index (QtCore.QModelIndex): current index
+
+        Returns:
+            None
+        """
+        model = index.model() # type: model.NodeTableModel
+        column = index.column() # type: int
+
+        knob = model.data(index, QtCore.Qt.UserRole)
+        value = model.data(index, QtCore.Qt.EditRole)
+
+        # Array knobs:
+        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+            if isinstance(knob, nuke.Boolean_Knob):
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                    option,
+                                                                    index)
+            elif isinstance(knob, nuke.Enumeration_Knob):
+                super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                    option,
+                                                                    index)
+            else:
+                rect = option.rect
+                if isinstance(value, (list, tuple)):
+
+                    if isinstance(knob, nuke.IArray_Knob):
+                        rect.setWidth(constants.EDITOR_CELL_WIDTH *
+                                      knob.width())
+                        rect.setHeight(constants.EDITOR_CELL_HEIGHT *
+                                       knob.height())
+
+                    elif isinstance(knob, nuke.Transform2d_Knob):
+                        root = math.sqrt(len(value))
+                        width = constants.EDITOR_CELL_WIDTH * root
+                        rect.setWidth(width)
+                        rect.setHeight(constants.EDITOR_CELL_HEIGHT * root)
+
+                    else:
+                        if column == 0:
+                            rect.adjust(0, 0, 100, 0)
+                        else:
+                            rect.adjust(-50, 0, 50, 0)
+
+                editor.setGeometry(rect)
+        else:
+            super(KnobsItemDelegate, self).updateEditorGeometry(editor,
+                                                                option,
+                                                                index)
