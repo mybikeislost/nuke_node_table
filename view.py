@@ -36,7 +36,6 @@ class NodeHeaderView(QtWidgets.QHeaderView):
             self.setSectionsClickable(True)
         elif "PySide" in __binding__:
             self.setClickable(True)
-        # noinspection PyUnresolvedReferences
 
         self.shade_dag_nodes_enabled = nuke_utils.shade_dag_nodes_enabled()
 
@@ -151,12 +150,14 @@ class NodeTableView(QtWidgets.QTableView):
 
         Returns:
             None
+
         """
         if event.button() == QtCore.Qt.LeftButton:
             if event.type() == QtCore.QEvent.MouseButtonRelease:
                 index = self.indexAt(event.pos())
                 if index.isValid():
                     self.edit(index)
+
         if event.button() == QtCore.Qt.RightButton:
             # TODO: implement right click options
             pass
@@ -171,6 +172,7 @@ class NodeTableView(QtWidgets.QTableView):
 
         Returns:
             None
+
         """
         # call parent commitData first
         super(NodeTableView, self).commitData(editor)

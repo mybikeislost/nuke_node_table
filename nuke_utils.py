@@ -36,6 +36,7 @@ def node_exists(node):
 
     Returns:
         bool: True if node exists
+
     """
     try:
         node.name()
@@ -50,6 +51,7 @@ def get_selected_nodes(recurse_groups=False):
 
     Returns:
         list: of nuke.Node
+
     """
     selection = nuke.selectedNodes()
 
@@ -104,6 +106,7 @@ def get_unique(seq):
 
     Returns:
         list: unique items
+        
     """
     seen = set()
     seen_add = seen.add

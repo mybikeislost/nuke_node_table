@@ -72,19 +72,19 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
         style = QtWidgets.QApplication.style()
         style.drawControl(QtWidgets.QStyle.CE_CheckBox, checkbox, painter)
-
+        
     def editorEvent(self, event, model, option, index):
-        """ Change the data in the model and the state of the checkbox.
+        """Change the data in the model and the state of the checkbox.
 
         If the user presses the left mouse button and this cell is editable.
         Otherwise do nothing.
-        """
 
+        """
         if not isinstance(index.data(QtCore.Qt.EditRole), bool):
             return super(CheckBoxDelegate, self).editorEvent(event,
-                                                       model,
-                                                       option,
-                                                       index)
+                                                             model,
+                                                             option,
+                                                             index)
 
         if not (index.flags() & QtCore.Qt.ItemIsEditable):
             return True
@@ -120,12 +120,11 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
                                                          index)
 
     def setModelData(self, editor, model, index):
-        """ Toggle the boolean state in the model.
-        """
+        """Toggle the boolean state in the model."""
         if not isinstance(index.data(QtCore.Qt.EditRole), bool):
             return super(CheckBoxDelegate, self).setModelData(editor,
-                                                       model,
-                                                       index)
+                                                              model,
+                                                              index)
 
         checked = not index.model().data(index, QtCore.Qt.EditRole)
         model.setData(index, checked, QtCore.Qt.EditRole)
