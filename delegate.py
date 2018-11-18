@@ -22,6 +22,14 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent=None):
         super(CheckBoxDelegate, self).__init__(parent)
 
+        # Get size of a standard checkbox.
+        option_button = QtWidgets.QStyleOptionButton()
+        self.default_check_box_rect = QtWidgets.QApplication.style().subElementRect(
+            QtWidgets.QStyle.SE_CheckBoxIndicator, option_button, None)
+        del option_button
+
+        self.mouse_pressed_pos = None
+
     def createEditor(self, parent, option, index):
         """ Important, otherwise an editor is created if the user clicks in this cell.
         """
@@ -94,18 +102,26 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         checked = not index.model().data(index, QtCore.Qt.EditRole)
         model.setData(index, checked, QtCore.Qt.EditRole)
 
-    def get_check_box_rect(self, option):
-        """ Get rect for checkbox centered in option.rect.
+    def get_check_box_rect(self, option=None, rect=None):
+        """Get the centered rectangle of the checkbox to draw.
+
+        Args:
+            option (QtWidgets.QStyleOption, optional): The option describing the
+                parameters used to draw the current item.
+            rect(QtCore.QRect, optional): The rectangle of the current item.
+                Can be used as alternative to `option`.
+
+        Returns:
+            QtCore.QRect: The rectangle of the checkbox.
+
         """
-        # Get size of a standard checkbox.
-        opts = QtWidgets.QStyleOptionButton()
-        check_box_rect = QtWidgets.QApplication.style().subElementRect(
-            QtWidgets.QStyle.SE_CheckBoxIndicator, opts, None)
+        rect = option.rect if option else rect
+
         # Center checkbox in option.rect.
-        x = option.rect.x()
-        y = option.rect.y()
-        w = option.rect.width()
-        h = option.rect.height()
-        check_box_top_left_corner = QtCore.QPoint(x + w / 2 -  check_box_rect.width() / 2,
-                                                  y + h / 2 -  check_box_rect.height() / 2)
-        return QtCore.QRect(check_box_top_left_corner, check_box_rect.size())
+        x = rect.x()
+        y = rect.y()
+        w = rect.width()
+        h = rect.height()
+        check_box_top_left_corner = QtCore.QPoint(x + w / 2 -  self.default_check_box_rect.width() / 2,
+                                                  y + h / 2 -  self.default_check_box_rect.height() / 2)
+        return QtCore.QRect(check_box_top_left_corner, self.default_check_box_rect.size())
