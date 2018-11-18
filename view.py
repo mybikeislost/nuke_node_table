@@ -153,14 +153,15 @@ class NodeTableView(QtWidgets.QTableView):
             None
         """
         if event.button() == QtCore.Qt.LeftButton:
-            index = self.indexAt(event.pos())
-            if index.isValid():
-                self.edit(index)
+            if event.type() == QtCore.QEvent.MouseButtonRelease:
+                index = self.indexAt(event.pos())
+                if index.isValid():
+                    self.edit(index)
         if event.button() == QtCore.Qt.RightButton:
             # TODO: implement right click options
             pass
 
-        super(NodeTableView, self).mouseReleaseEvent(event)
+        return super(NodeTableView, self).mouseReleaseEvent(event)
 
     def commitData(self, editor):
         """Set the current editor data to the model for the whole selection.
