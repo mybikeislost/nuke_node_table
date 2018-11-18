@@ -141,6 +141,34 @@ class NodeTableView(QtWidgets.QTableView):
         self.nodes_header = NodeHeaderView(QtCore.Qt.Vertical, parent)
         self.setVerticalHeader(self.nodes_header)
 
+    def selectionCommand(self, index, event):
+        """Returns the SelectionFlags to be used when updating a selection.
+
+        Prevent selection change when clicking a checkbox.
+
+        Args:
+            index (QtCore.QModelIndex): Current index.
+            event (QtCore.QEvent): Current event.
+
+        Returns:
+             QtCore.QItemSelectionModel.Flag: The selection update flag.
+
+        """
+        index = self.indexAt(event.pos())
+        if not index.isValid():
+            return super(NodeTableView, self).selectionCommand(index, event)
+
+        # Prevent loosing selection when clicking a checkbox.
+        if event.type() in (QtCore.QEvent.MouseButtonRelease, QtCore.QEvent.MouseMove,
+                            QtCore.QEvent.MouseButtonPress):
+            data = index.model().data(index, QtCore.Qt.EditRole)
+            if isinstance(data, bool):
+                checkbox_rect = self.delegate.get_check_box_rect(rect=self.visualRect(index))
+                if checkbox_rect.contains(event.pos()):
+                    return QtCore.QItemSelectionModel.NoUpdate
+
+        return super(NodeTableView, self).selectionCommand(index, event)
+
     def mouseReleaseEvent(self, event):
         """enter edit mode after single click
 
