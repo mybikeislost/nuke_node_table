@@ -87,7 +87,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
                                                        index)
 
         if not (index.flags() & QtCore.Qt.ItemIsEditable):
-            return False
+            return True
 
         if event.button() == QtCore.Qt.LeftButton:
             checkbox_rect = self.get_check_box_rect(option)
