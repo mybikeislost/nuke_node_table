@@ -185,18 +185,23 @@ class NodeTableView(QtWidgets.QTableView):
         _model = self.currentIndex().model()
         # get the value that the user just submitted
         value = _model.data(self.currentIndex(), QtCore.Qt.EditRole)
+        edited_knob = _model.data(self.currentIndex(), QtCore.Qt.UserRole)
 
         _row, _column = self.currentIndex().row(), self.currentIndex().column()
 
         # selection is a list of QItemSelectionRange instances
         for isr in self.selectionModel().selection():
             rows = range(isr.top(), isr.bottom() + 1)
+            columns = range(isr.left(), isr.right() +1)
             for row in rows:
-                if row != _row:
-                    # row,curCol is also in the selection. make an index:
-                    idx = _model.index(row, _column)
-                    # so we can apply the same value change
-                    _model.setData(idx, value, QtCore.Qt.EditRole)
+                for col in columns:
+                    if row != _row or col != _column:
+                        # row,curCol is also in the selection. make an index:
+                        idx = _model.index(row, col)
+                        # so we can apply the same value change
+                        knob = _model.data(idx, QtCore.Qt.UserRole)
+                        if type(knob) == type(edited_knob):
+                            _model.setData(idx, value, QtCore.Qt.EditRole)
 
 
 class MultiCompleter(QtWidgets.QCompleter):
