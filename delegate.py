@@ -89,6 +89,14 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         if not (index.flags() & QtCore.Qt.ItemIsEditable):
             return True
 
+        if event.type() not in (QtCore.QEvent.Type.MouseButtonPress,
+                                QtCore.QEvent.Type.MouseButtonRelease,
+                                ):
+            return super(CheckBoxDelegate, self).editorEvent(event,
+                                                             model,
+                                                             option,
+                                                             index)
+
         if event.button() == QtCore.Qt.LeftButton:
             checkbox_rect = self.get_check_box_rect(option)
             if event.type() == QtCore.QEvent.Type.MouseButtonPress:
