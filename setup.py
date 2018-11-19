@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="NodeTable",
+    name="node_table",
     packages=find_packages(),
 
     install_requires=['Qt.py>=1.0'],
