@@ -11,8 +11,8 @@ else:
 import nuke
 
 # Import local modules
-from NodeTable import constants
-from NodeTable import knob_editors
+from node_table import constants
+from node_table import knob_editors
 
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):

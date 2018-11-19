@@ -11,8 +11,8 @@ from Qt import QtWidgets
 import nuke
 
 # Import local modules.
-from NodeTable import nuke_utils
-from NodeTable import constants
+from node_table import nuke_utils
+from node_table import constants
 
 
 class ArrayEditor(QtWidgets.QGroupBox):
