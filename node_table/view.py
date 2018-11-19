@@ -18,10 +18,10 @@ else:
 
 # Import internal modules.
 # pylint: disable=wrong-import-position
-from NodeTable import nuke_utils
-from NodeTable import model
-from NodeTable import constants
-from NodeTable import delegate
+from node_table import nuke_utils
+from node_table import model
+from node_table import constants
+from node_table import delegate
 
 
 # pylint: disable=invalid-name

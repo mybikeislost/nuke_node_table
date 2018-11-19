@@ -14,7 +14,7 @@ add to your menu.py:
 from nukescripts import panels
 
 def get_node_table_widget():
-    from NodeTable import view as node_table_view
+    from node_table import view as node_table_view
     reload(node_table_view)
     return node_table_view.NodeTableWidget(nuke.selectedNodes())
 

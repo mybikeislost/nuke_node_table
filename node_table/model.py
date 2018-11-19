@@ -19,8 +19,8 @@ import nuke
 
 # Import local modules.
 # pylint: disable=wrong-import-position
-from NodeTable import nuke_utils
-from NodeTable import constants
+from node_table import nuke_utils
+from node_table import constants
 
 
 LOG = logging.getLogger(__name__)

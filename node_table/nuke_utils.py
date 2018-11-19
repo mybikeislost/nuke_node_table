@@ -18,8 +18,8 @@ except ImportError:
 
 # Import internal modules.
 # pylint: disable=wrong-import-position
-from NodeTable.constants import PACKAGE_NICE_NAME
-from NodeTable.constants import SHADE_DAG_NODES_NON_COMMERCIAL
+from node_table.constants import PACKAGE_NICE_NAME
+from node_table.constants import SHADE_DAG_NODES_NON_COMMERCIAL
 
 
 LOG = logging.getLogger(__name__)
