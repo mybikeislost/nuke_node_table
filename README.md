@@ -1,6 +1,6 @@
 # README #
 
-Spreadsheat showing and editing knobs of selected Nodes
+Spreadsheet showing and editing knobs of selected Nodes
 
 ![demo](demo.gif)
 
