@@ -9,8 +9,8 @@ pipelines:
   tags:
     '*.*.0':
       - step:
-          name: Build wheel
+          name: Build and upload wheel
           trigger: automatic
           script: # Modify the commands below to build your repository.
             - python setup.py bdist_wheel
-            - python setup.py build
+            - find dist -type f -exec curl "https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads"
