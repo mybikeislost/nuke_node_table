@@ -2,11 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="NodeTable",
-    version="2.0.0",
     packages=find_packages(),
 
     install_requires=['Qt.py>=1.0'],
-
+    setup_requires=['setuptools_scm'],
     python_requres='python>=2.7,<4',
 
     package_data={
@@ -44,4 +43,6 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
+
+    use_scm_version = True,
 )
