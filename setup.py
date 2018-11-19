@@ -1,0 +1,47 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="NodeTable",
+    version="2.0.0",
+    packages=find_packages(),
+
+    install_requires=['Qt.py>=1.0'],
+
+    python_requres='python>=2.7,<4',
+
+    package_data={
+        # If any package contains *.txt or *.rst files, include them:
+        '': ['*.txt', '*.rst'],
+    },
+
+    # metadata to display on PyPI
+    author="Mitja Mueller-Jend",
+    author_email="mitja.muellerjend@gmail.com",
+    description="Spreadsheet showing and editing knobs of selected Nodes.",
+    license="MIT",
+    keywords="nuke nodes knobs multi node editor",
+    url="https://bitbucket.org/filmkorn/nodetable",
+    project_urls={
+        "Bug Tracker": "https://bitbucket.org/filmkorn/nodetable/issues",
+        "Source Code": "https://bitbucket.org/filmkorn/nodetable/src",
+    },
+
+    classifiers=[
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        'Development Status :: 4 - Beta',
+
+        # Pick your license as you wish (should match "license" above)
+         'License :: OSI Approved :: MIT License',
+
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+    ],
+)
