@@ -185,6 +185,13 @@ class NodeTableView(QtWidgets.QTableView):
                 index = self.indexAt(event.pos())
                 if index.isValid():
                     self.edit(index)
+                else:
+                    # Close an active editor if it is open.
+                    index = self.currentIndex()
+                    editor = self.indexWidget(index)
+                    if editor:
+                        self.commitData(editor)
+                        self.closeEditor(editor, QtWidgets.QAbstractItemDelegate.NoHint)
 
         if event.button() == QtCore.Qt.RightButton:
             # TODO: implement right click options
