@@ -13,6 +13,7 @@ import nuke
 # Import local modules
 from node_table import constants
 from node_table import knob_editors
+from node_table import nuke_utils
 
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
@@ -183,6 +184,10 @@ class KnobsItemDelegate(CheckBoxDelegate):
             if isinstance(knob, nuke.AColor_Knob):
                 return knob_editors.ColorEditor(parent)
 
+            elif isinstance(knob, nuke.ColorChip_Knob):
+                # Allow enough precision to not loose
+                return knob_editors.ColorEditor(parent, decimals=20)
+
             elif isinstance(knob, nuke.Boolean_Knob):
                 return super(KnobsItemDelegate, self).createEditor(parent,
                                                                    option,
@@ -227,10 +232,19 @@ class KnobsItemDelegate(CheckBoxDelegate):
             index (QtCore.QModelIndex): current index
 
         Returns: None
-        """
 
-        model = index.model() # type: model.NodeTableModel
+        """
+        model = index.model()
         data = model.data(index, QtCore.Qt.EditRole)
+        knob = model.data(index, QtCore.Qt.UserRole)
+
+        # AColorChip_Knob: Convert hex to RGB
+        if isinstance(knob, nuke.ColorChip_Knob):
+            if data == 0:  # No custom color is not set.
+                node = knob.node()
+                data = nuke.defaultNodeColor(node.Class())
+            data = nuke_utils.to_rgb(data)
+            return editor.set_editor_data(data)
 
         # Array knobs:
         if isinstance(data, (list, tuple)):
@@ -270,6 +284,12 @@ class KnobsItemDelegate(CheckBoxDelegate):
 
             elif isinstance(editor, knob_editors.ArrayEditor):
                 data = editor.get_editor_data()
+
+            if isinstance(knob, nuke.ColorChip_Knob):
+                data = nuke_utils.to_hex(data)
+                default_node_color = nuke.defaultNodeColor(knob.node().Class())
+                if data == default_node_color:
+                    data = 0
 
             if data:
                 return model.setData(index, data, QtCore.Qt.EditRole)
@@ -312,8 +332,20 @@ class KnobsItemDelegate(CheckBoxDelegate):
                                                                     index)
             else:
                 rect = option.rect
-                if isinstance(value, (list, tuple)):
+                rows = columns = 0
+                try:
+                    rows, columns = knob.rows(), knob.columns()
+                except AttributeError:
+                    # Not an IArray_Knob.
+                    columns = knob.width()
+                except AttributeError:
+                    # Not an Array_Knob.
+                    pass
 
+                if isinstance(knob, nuke.ColorChip_Knob):
+                    columns = 4
+
+                if any((rows, columns)):
                     if isinstance(knob, nuke.IArray_Knob):
                         rect.setWidth(constants.EDITOR_CELL_WIDTH *
                                       knob.width())
