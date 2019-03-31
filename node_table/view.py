@@ -154,7 +154,13 @@ class NodeTableView(QtWidgets.QTableView):
              QtCore.QItemSelectionModel.Flag: The selection update flag.
 
         """
-        index = self.indexAt(event.pos())
+        try:
+            pos = event.pos()
+        except AttributeError:
+            # Event is does not have a position ie. KeyPressEvent.
+            return super(NodeTableView, self).selectionCommand(index, event)
+
+        index = self.indexAt(pos)
         if not index.isValid():
             return super(NodeTableView, self).selectionCommand(index, event)
 
@@ -185,6 +191,13 @@ class NodeTableView(QtWidgets.QTableView):
                 index = self.indexAt(event.pos())
                 if index.isValid():
                     self.edit(index)
+                else:
+                    # Close an active editor if it is open.
+                    index = self.currentIndex()
+                    editor = self.indexWidget(index)
+                    if editor:
+                        self.commitData(editor)
+                        self.closeEditor(editor, QtWidgets.QAbstractItemDelegate.NoHint)
 
         if event.button() == QtCore.Qt.RightButton:
             # TODO: implement right click options

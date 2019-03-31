@@ -1,11 +1,9 @@
-"""Functions to interact with Nuke.
-
-"""
-
+"""Functions to interact with Nuke."""
 
 # Import built-in modules.
-import os
 import logging
+import os
+import sys
 
 # Import third party modules.
 NUKE_LOADED = True
@@ -64,6 +62,22 @@ def get_selected_nodes(recurse_groups=False):
     return selection
 
 
+def int_rollover(value):
+    """Simulate integer overflow to match Nuke's ColorChip_Knob values.
+
+    Taken from: https://stackoverflow.com/a/7771363
+
+    Args:
+        value (int): Value to simulate int overflow on.
+
+    Returns:
+        int: Value after overflow.
+
+    """
+    if not -sys.maxint - 1 <= value <= sys.maxint:
+        value = (value + (sys.maxint + 1)) % (2 * (sys.maxint + 1)) - sys.maxint - 1
+    return value
+
 def to_hex(color_rgb):
     """convert rgb color values to hex
 
@@ -73,10 +87,10 @@ def to_hex(color_rgb):
     Returns:
         str: color in hex notation
     """
-    return  int('%02x%02x%02x%02x' % (int(color_rgb[0] * 255),
-                                      int(color_rgb[1] * 255),
-                                      int(color_rgb[2] * 255),
-                                      int(color_rgb[3] * 255)), 16)
+    return int_rollover(int('%02x%02x%02x%02x' % (int(color_rgb[0] * 255),
+                                                  int(color_rgb[1] * 255),
+                                                  int(color_rgb[2] * 255),
+                                                  int(color_rgb[3] * 255)), 16))
 
 
 def to_rgb(color_hex):
@@ -207,7 +221,7 @@ def select_node(node, zoom=1):
 
 
 def shade_dag_nodes_enabled():
-    """Check if nodes are shaded in DAG
+    """Check if nodes are shaded in DAG.
 
     Note:
         Skipping check of the preferences node since that counts towards the
@@ -217,7 +231,6 @@ def shade_dag_nodes_enabled():
         bool: True if nodes are shaded
 
     """
-
     # nuke.GlobalsEnvironment.get() returns None for non-existing key.
     # Not setting default return value because it can only be a string.
     if not nuke.env.get('nc'):

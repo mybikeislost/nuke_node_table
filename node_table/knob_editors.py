@@ -20,7 +20,8 @@ class ArrayEditor(QtWidgets.QGroupBox):
 
     """
 
-    def __init__(self, parent, length, rows=1):
+    def __init__(self, parent, length, rows=1,
+                 decimals=constants.EDITOR_DECIMALS):
         super(ArrayEditor, self).__init__(parent)
 
         self.length = length
@@ -39,7 +40,7 @@ class ArrayEditor(QtWidgets.QGroupBox):
             spin_box = QtWidgets.QDoubleSpinBox(self)
             spin_box.setMinimumHeight(22)
             spin_box.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-            spin_box.setDecimals(constants.EDITOR_DECIMALS)
+            spin_box.setDecimals(decimals)
             spin_box.setRange(-9999999, 99999999)
             col = i % rows
             row = int(float(i) / self.rows)
@@ -77,8 +78,9 @@ class ColorEditor(ArrayEditor):
     An extra button allows to pick a new value.
     """
 
-    def __init__(self, parent):
-        super(ColorEditor, self).__init__(parent=parent, length=4, rows=1)
+    def __init__(self, parent, decimals=constants.EDITOR_DECIMALS):
+        super(ColorEditor, self).__init__(parent=parent, length=4, rows=1,
+                                          decimals=decimals)
 
         self.pick_button = QtWidgets.QPushButton('c')
         self.pick_button.clicked.connect(self.get_color)
