@@ -3,14 +3,12 @@
 Some knobs need to be translated into custom editor widgets to be editable.
 """
 
-# Import third-party modules.
-# pylint: disable=no-name-in-module
-from Qt import QtWidgets
-
-# pylint: disable=import-error
+# Import third-party modules
 import nuke
+from Qt import QtWidgets  # pylint: disable=no-name-in-module
 
-# Import local modules.
+
+# Import local modules
 from node_table import nuke_utils
 from node_table import constants
 

@@ -1,14 +1,10 @@
 # Keeping this for development to enable auto-completion.
 # pylint: disable=no-name-in-module
 import math
-if __name__ == '__main__':
-    from PySide2 import QtCore, QtWidgets
-    __binding__ = 'PySide2'
-else:
-    from Qt import QtCore, QtWidgets
 
 # Import third-party modules
 import nuke
+from Qt import QtCore, QtWidgets  # pylint: disable=no-name-in-module
 
 # Import local modules
 from node_table import constants

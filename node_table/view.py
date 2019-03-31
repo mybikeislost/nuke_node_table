@@ -1,27 +1,18 @@
 """Build the widget and stack the models.
 """
 
-# Import built-in modules.
-import math
-
-# Import third party modules.
+# Import third party modules
 # pylint: disable=import-error
 import nuke
 
 # Keeping this for development to enable auto-completion.
-# pylint: disable=no-name-in-module
-if __name__ == '__main__':
-    from PySide2 import QtCore, QtGui, QtWidgets
-    __binding__ = 'PySide2'
-else:
-    from Qt import QtCore, QtGui, QtWidgets, __binding__
+from Qt import QtCore, QtGui, QtWidgets, __binding__  # pylint: disable=no-name-in-module
 
-# Import internal modules.
-# pylint: disable=wrong-import-position
-from node_table import nuke_utils
-from node_table import model
+# Import internal modules
 from node_table import constants
 from node_table import delegate
+from node_table import nuke_utils
+from node_table import model
 
 
 # pylint: disable=invalid-name

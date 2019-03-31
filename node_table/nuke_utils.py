@@ -1,26 +1,30 @@
 """Functions to interact with Nuke."""
 
-# Import built-in modules.
-import logging
+# Import built-in modules
 import os
 import sys
 
-# Import third party modules.
+try:
+    # Python 2
+    string_types = basestring
+except NameError:
+    # Python 3
+    string_types = str
+
+# Import third party modules
 NUKE_LOADED = True
 try:
     import nuke
 except ImportError:
     # We need some Qt to mimic nukes interface functions.
-    from Qt import QtWidgets
+    from Qt import QtWidgets  # pylint: disable=no-name-in-module
+
     NUKE_LOADED = False
 
-# Import internal modules.
+# Import internal modules
 # pylint: disable=wrong-import-position
 from node_table.constants import PACKAGE_NICE_NAME
 from node_table.constants import SHADE_DAG_NODES_NON_COMMERCIAL
-
-
-LOG = logging.getLogger(__name__)
 
 
 def node_exists(node):
@@ -207,7 +211,7 @@ def select_node(node, zoom=1):
             node = full_name.split('.')[0]
 
     # Starting from the node name get the top-most parent node.
-    if isinstance(node, basestring):
+    if isinstance(node, string_types):
         # if node is part of a group: select the group
         if "." in node:
             node_name = node.split(".")[0]
