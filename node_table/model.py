@@ -1,29 +1,19 @@
-"""models to server and filter nodes data to the view
+"""models to server and filter nodes data to the view."""
 
-"""
-# Import built-in modules
-import logging
+try:
+    # Python 2
+    string_types = basestring
+except NameError:
+    # Python 3
+    string_types = str
 
-# Import third-party modules.
-# Importing Qt in main to enable auto completion.
+# Import third-party modules
+import nuke  # pylint: disable=import-error
+from Qt import QtCore, QtGui, QtWidgets  # pylint: disable=no-name-in-module
 
-if __name__ == '__main__':
-    # pylint: disable=import-error
-    from PySide2 import QtCore, QtGui, QtWidgets
-else:
-    # pylint: disable=no-name-in-module, E0611
-    from Qt import QtCore, QtGui, QtWidgets
-
-# pylint: disable=import-error, wrong-import-position
-import nuke
-
-# Import local modules.
-# pylint: disable=wrong-import-position
-from node_table import nuke_utils
+# Import local modules
 from node_table import constants
-
-
-LOG = logging.getLogger(__name__)
+from node_table import nuke_utils
 
 
 def scalar(tpl, multiplier):
@@ -599,7 +589,6 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             bool: True if successfully removed.
         """
         self.beginRemoveRows(parent, row, row + count - 1)
-        LOG.debug('Removing rows: %s to %s.', row, row + count - 1)
         for i in reversed(range(row, row + count)):
             self._node_list.pop(i)
         self.endRemoveRows()
@@ -789,7 +778,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                         else:
                             edited = knob.setValueAt(val, frame, i)
 
-                elif isinstance(value, basestring):
+                elif isinstance(value, string_types):
                     value = self.safe_string(value)
                     edited = knob.setValue(value)
 
