@@ -185,7 +185,9 @@ class KnobsItemDelegate(CheckBoxDelegate):
                 return knob_editors.ColorEditor(parent)
 
             elif isinstance(knob, nuke.ColorChip_Knob):
-                # Allow enough precision to not loose
+                # Allow enough precision to properly convert from hex to rgb
+                # and back to the same value. This avoids saving default
+                # `tile_color` values into nodes.
                 return knob_editors.ColorEditor(parent, decimals=20)
 
             elif isinstance(knob, nuke.Boolean_Knob):
