@@ -154,7 +154,13 @@ class NodeTableView(QtWidgets.QTableView):
              QtCore.QItemSelectionModel.Flag: The selection update flag.
 
         """
-        index = self.indexAt(event.pos())
+        try:
+            pos = event.pos()
+        except AttributeError:
+            # Event is does not have a position ie. KeyPressEvent.
+            return super(NodeTableView, self).selectionCommand(index, event)
+
+        index = self.indexAt(pos)
         if not index.isValid():
             return super(NodeTableView, self).selectionCommand(index, event)
 
