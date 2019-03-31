@@ -364,6 +364,9 @@ class KnobsItemDelegate(CheckBoxDelegate):
                         else:
                             rect.adjust(-50, 0, 50, 0)
 
+                    rect.setWidth(max(rect.width(),
+                                      constants.EDITOR_CELL_WIDTH * columns))
+
                 editor.setGeometry(rect)
         else:
             super(KnobsItemDelegate, self).updateEditorGeometry(editor,
