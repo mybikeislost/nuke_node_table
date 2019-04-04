@@ -1,4 +1,4 @@
-"""Define all constant variables here, to avoid magic numbers."""
+"""Define all constant variables here."""
 
 # pylint: disable=import-error
 import nuke

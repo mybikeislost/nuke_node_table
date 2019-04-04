@@ -13,7 +13,7 @@ from node_table import nuke_utils
 
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
-    """ Delegate for editing bool values via a centered checkbox.
+    """Delegate for editing bool values via a centered checkbox.
 
     Does not actually create a QCheckBox, but instead overrides the paint()
     method to draw the checkbox directly. Mouse events are handled by the
@@ -36,7 +36,17 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         self.mouse_pressed_pos = None
 
     def createEditor(self, parent, option, index):
-        """ Important, otherwise an editor is created if the user clicks in this cell.
+        """Skip editor creation for booleans.
+
+        Args:
+            parent (QtWidgets.QWidget): Parent widget or view.
+            option (QtWidgets.QStyleOption): The option describing the
+                parameters used to draw the current item.
+            index (QtCore.QModelIndex): Current index.
+
+        Returns:
+            None: If the data is a boolean else the editor of the super class.
+
         """
         if not isinstance(index.data(QtCore.Qt.EditRole), bool):
             return super(CheckBoxDelegate, self).createEditor(parent,
@@ -46,7 +56,13 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         return None
 
     def paint(self, painter, option, index):
-        """ Paint a checkbox without the label.
+        """Paint a checkbox without the label.
+
+        Args:
+            painter (QtGui.QPainter): Painter to performs on the widget.
+            option (QtWidgets.QStyleOption): The option describing the
+                parameters used to draw the current item.
+            index (QtCore.QModelIndex): Current index.
 
         """
         super(CheckBoxDelegate, self).paint(painter, option, index)
@@ -75,6 +91,13 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
         If the user presses the left mouse button and this cell is editable.
         Otherwise do nothing.
+
+        Args:
+            event (QtCore.QEvent): The current event to handle.
+            model (QtCore.QAbstractItemModel): The model.
+            option (QtWidgets.QStyleOption): The option describing the
+                parameters used to draw the current item.
+            index (QtCore.QModelIndex): Current index.
 
         """
         if not isinstance(index.data(QtCore.Qt.EditRole), bool):
@@ -117,7 +140,14 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
                                                          index)
 
     def setModelData(self, editor, model, index):
-        """Toggle the boolean state in the model."""
+        """Toggle the boolean state in the model.
+
+        Args:
+            editor (QtWidgets.QWidget): The current editor.
+            model (QtCore.QAbstractItemModel): The model.
+            index (QtCore.QModelIndex): Current index.
+
+        """
         if not isinstance(index.data(QtCore.Qt.EditRole), bool):
             return super(CheckBoxDelegate, self).setModelData(editor,
                                                               model,
@@ -130,8 +160,8 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         """Get the centered rectangle of the checkbox to draw.
 
         Args:
-            option (QtWidgets.QStyleOption, optional): The option describing the
-                parameters used to draw the current item.
+            option (QtWidgets.QStyleOption, optional): The option describing
+                the parameters used to draw the current item.
             rect(QtCore.QRect, optional): The rectangle of the current item.
                 Can be used as alternative to `option`.
 
@@ -159,19 +189,19 @@ class KnobsItemDelegate(CheckBoxDelegate):
 
     # pylint: disable=invalid-name
     def createEditor(self, parent, option, index):
-        """
+        """Create an editor depending on the current node class.
 
         Args:
-            parent (QtWidgets.QWidget): parent widget
-            option (QtWidget.QStyleOptionViewItem):
-            index (QtCore.QModelIndex): current index
+            parent (QtWidgets.QWidget): Parent widget.
+            option (QtWidget.QStyleOptionViewItem): The option describing
+                the parameters used to draw the current item.
+            index (QtCore.QModelIndex): Current index.
 
         Returns:
-            new editor
+            QtWidgets.QWidget: The new editor.
+
         """
-        model = index.model() # type: models.NodeTableModel
-        # row = index.row() # type: int
-        # column = index.column() # type: int
+        model = index.model()  # type: model.NodeTableModel
 
         knob = model.data(index, QtCore.Qt.UserRole)
 
@@ -210,8 +240,8 @@ class KnobsItemDelegate(CheckBoxDelegate):
                 return knob_editors.ArrayEditor(parent,
                                                 items,
                                                 rows)
-        if isinstance(knob, nuke.Format_Knob):
 
+        if isinstance(knob, nuke.Format_Knob):
             combobox = QtWidgets.QComboBox(parent)
             for format in nuke.formats():
                 combobox.addItem(format.name())
@@ -223,13 +253,11 @@ class KnobsItemDelegate(CheckBoxDelegate):
 
     # pylint: disable=invalid-name
     def setEditorData(self, editor, index):
-        """sets editor to knobs value
+        """Set the editor to the current value of the knob.
 
         Args:
-            editor (QtWidgets.QWidget):
-            index (QtCore.QModelIndex): current index
-
-        Returns: None
+            editor (QtWidgets.QWidget): The editor to set the values on.
+            index (QtCore.QModelIndex): Current index.
 
         """
         model = index.model()
@@ -252,18 +280,14 @@ class KnobsItemDelegate(CheckBoxDelegate):
 
     # pylint: disable=invalid-name
     def setModelData(self, editor, model, index):
-        """sets new value to model
+        """Set the new value to the model.
 
         Args:
-            editor (knob_editors.QWidget):
-            model (QtCore.QAbstractTableModel):
-            index (QtCore.QModelIndex): current index
-
-        Returns:
-            None
+            editor (QtWidgets.QWidget): The editor holding the new value.
+            model (QtCore.QAbstractTableModel): The model to set the value on.
+            index (QtCore.QModelIndex): Current index.
 
         """
-
         model = index.model()  # type: model.NodeTableModel
 
         knob = model.data(index, QtCore.Qt.UserRole)
@@ -295,6 +319,7 @@ class KnobsItemDelegate(CheckBoxDelegate):
                 return super(KnobsItemDelegate, self).setModelData(editor,
                                                             model,
                                                             index)
+
         else:
             return super(KnobsItemDelegate, self).setModelData(editor,
                                                         model,
@@ -302,15 +327,17 @@ class KnobsItemDelegate(CheckBoxDelegate):
 
     # pylint: disable=invalid-name
     def updateEditorGeometry(self, editor, option, index):
-        """
+        """Set the geometry of the editor.
+
+        Ensure a minimum size and clip the position at the views edges.
 
         Args:
-            editor (QtWidget.QWidget):
-            option (QtWidget.QStyleOptionViewItem):
-            index (QtCore.QModelIndex): current index
+            editor (QtWidget.QWidget): The editor to position.
+            option (QtWidget.QStyleOptionViewItem): The option describing
+                the parameters used to draw the current item.
+            index (QtCore.QModelIndex): The current index.
 
-        Returns:
-            None
+
         """
         model = index.model() # type: model.NodeTableModel
         column = index.column() # type: int

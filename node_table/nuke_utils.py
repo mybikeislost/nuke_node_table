@@ -28,7 +28,7 @@ from node_table.constants import SHADE_DAG_NODES_NON_COMMERCIAL
 
 
 def node_exists(node):
-    """Check if python object node is still attached to a Node.
+    """Check if python node object node is still attached to a Node.
 
     Nuke throws a ValueError if node is not attached. This happens when the
     user deleted a node that is still in use by a python script.
@@ -37,7 +37,7 @@ def node_exists(node):
         node (nuke.Node): node python object
 
     Returns:
-        bool: True if node exists
+        bool: True if node exists.
 
     """
     try:
@@ -49,7 +49,7 @@ def node_exists(node):
 
 
 def get_selected_nodes(recurse_groups=False):
-    """get current selection
+    """Get current selection.
 
     Returns:
         list: of nuke.Node
@@ -82,32 +82,36 @@ def int_rollover(value):
         value = (value + (sys.maxint + 1)) % (2 * (sys.maxint + 1)) - sys.maxint - 1
     return value
 
+
 def to_hex(color_rgb):
-    """convert rgb color values to hex
+    """Convert `rgba` color values to hex.
 
     Args:
-        color_rgb (tuple): color values 0-1
+        color_rgb (tuple): color values 0-1.
 
     Returns:
-        str: color in hex notation
+        str: Color in hex notation.
+
     """
-    return int_rollover(int('%02x%02x%02x%02x' % (int(color_rgb[0] * 255),
+    color_hex = int('%02x%02x%02x%02x' % (int(color_rgb[0] * 255),
                                                   int(color_rgb[1] * 255),
                                                   int(color_rgb[2] * 255),
-                                                  int(color_rgb[3] * 255)), 16))
+                                                  int(color_rgb[3] * 255)), 16)
+    return int_rollover(color_hex)
 
 
 def to_rgb(color_hex):
-    """hex to rgb
+    """Convert hex to rgba.
+
     Author: Ivan Busquets
 
     Args:
-        color_hex: color in hex format
+        color_hex (int|long): Color in hex format.
 
-    Returns (tuple): color in 0-1 range
+    Returns:
+         tuple: RGBA color in 0-1 range.
 
     """
-
     red = (0xFF & color_hex >> 24) / 255.0
     green = (0xFF & color_hex >> 16) / 255.0
     blue = (0xFF & color_hex >> 8) / 255.0
@@ -117,13 +121,19 @@ def to_rgb(color_hex):
 
 
 def get_unique(seq):
-    """returns all unique items in of a list of strings
+    """Returns all unique items in of a list of strings.
+
+    As opposed to casting to a ``set`` this preserves the order of the items.
+
+    Examples:
+        >>> get_unique(['abc', 'def', 'abc'])
+        ['abc', 'def']
 
     Args:
-        seq (list): list of strings
+        seq (:obj:`list` of :obj;`string`): list of strings.
 
     Returns:
-        list: unique items
+        :obj:`list` of :obj;`string`: Unique strings.
         
     """
     seen = set()
@@ -132,13 +142,14 @@ def get_unique(seq):
 
 
 def get_node_tile_color(node):
-    """return the nodes tile color or default node color if not set
+    """Return the node's tile color or default node color if not set.
 
     Args:
-        node (nuke.Node): node
+        node (nuke.Node): Node to get the ``tile_color`` from.
 
     Returns:
-        tuple: colors in rgb
+        :obj:`tuple` of :obj:`float`: Colors in rgba.
+
     """
     color = None
     tile_color_knob = node.knob('tile_color')
@@ -151,28 +162,40 @@ def get_node_tile_color(node):
         return to_rgb(color)[:3]
 
 
-def get_node_font_color(node):
+def get_node_font_color(node, hex=False):
     """Get the label color of a node.
 
+    Note:
+        When returning the color in RGB, the alpha component is stripped as
+        it is not important in the nodes font color.
+
     Args:
-        node (nuke.Node): node
+        node (nuke.Node): Node to get the font color from.
+        hex (bool, optional): If True, return value in hex number else return
+            the color converted to normalized rgb (default).
 
     Returns:
-        tuple: color in rgb
+        :obj:`tuple` of :obj:`float`: Color in rgba.
+
     """
     color_knob = node.knob('note_font_color')
     if color_knob:
-        return to_rgb(color_knob.value())[:3]
+        color = color_knob.value()
+        if hex:
+            return color
+        else:
+            return to_rgb(color)[:3]
 
 
 def get_node_classes(no_ext=True):
-    """returns list of all available node classes (plugins)
+    """Return all available node classes (plugins).
 
     Args:
-        no_ext: strip extension to return only class name
+        no_ext: Strip file extension to return only class name.
 
     Returns:
-        list: available node classes
+        :obj:`list` of :obj:`string`: All available node classes.
+
     """
     if NUKE_LOADED:
         plugins = nuke.plugins(nuke.ALL | nuke.NODIR, "*." + nuke.PLUGIN_EXT)
@@ -186,7 +209,7 @@ def get_node_classes(no_ext=True):
 
 
 def select_node(node, zoom=1):
-    """selects and (optionally) zooms DAG to given node.
+    """Select node and (optionally) zoom DAG to given node.
 
     Warnings:
         If name of node inside a group is given,
@@ -195,10 +218,9 @@ def select_node(node, zoom=1):
     Args:
         node (nuke.Node, str): node or name of node. If name of node inside a group is given,
             the surrounding group will be selected instead of the node.
-        zoom (int): optionally zoom to given node. If zoom = 0, no DAG will not zoom to given node.
+        zoom (int, optimal): Zoom to given node. If zoom = 0, DAG will not
+            be focused on the given node.
 
-    Returns:
-        None
     """
     # deselecting all nodes:  looks stupid but works in non-commercial mode
     nuke.selectAll()
@@ -232,11 +254,9 @@ def shade_dag_nodes_enabled():
         10 nodes limit in non-commercial edition.
 
     Returns:
-        bool: True if nodes are shaded
+        bool: True if nodes are shaded.
 
     """
-    # nuke.GlobalsEnvironment.get() returns None for non-existing key.
-    # Not setting default return value because it can only be a string.
     if not nuke.env.get('nc'):
         pref_node = nuke.toNode("preferences")
         shaded = pref_node['ShadeDAGNodes'].value()
@@ -250,12 +270,12 @@ def ask(prompt=""):
     """Ask user a yes/no question.
 
     Args:
-        prompt: Question to display.
+        prompt (str, optional): Question to display.
 
     Returns:
-        bool: users answer.
+        bool: Users answer.
+
     """
-    reply = True
     if NUKE_LOADED:
         reply = nuke.ask(prompt)
     else:

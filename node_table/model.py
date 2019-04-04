@@ -17,26 +17,31 @@ from node_table import nuke_utils
 
 
 def scalar(tpl, multiplier):
-    """multiply each value in tuple by scalar
+    """Multiply each value in tuple by scalar.
+
+    Examples:
+        >>> scalar((1.0, 2.0, 3.0), 2.0)
+        (2.0, 4.0, 6.0)
 
     Args:
-        tpl (tuple):
-        scalar (float):
+        tpl (tuple|list): Values to multiply.
+        multiplier (float): Multiplier.
 
-    Returns (tuple):
-        tpl * sc
+    Returns:
+        tuple: tpl * multiplier
+
     """
-
     return tuple([multiplier * t for t in tpl])
 
 
 def get_palette(widget=None):
-    """return the applications palette
+    """Return the application's palette.
 
     Args:
-        widget: current widget (optional)
+        widget (QtWidgets.QWidget, optional): Current widget.
 
     Returns:
+        QtGui.QPalette: The color palette of the current application or widget.
 
     """
     app = QtWidgets.QApplication.instance() #tpye: QtWidget.QApplication
@@ -49,11 +54,12 @@ def bisect_case_insensitive(sorted_list, new_item):
     Taken from https://stackoverflow.com/a/41903429
 
     Args:
-        sorted_list (list): sorted list
-        new_item (str): new string to add to list
+        sorted_list (list): Sorted list.
+        new_item (str): Item to find sorted location for.
 
     Returns:
-        int: index at which point new_item must be inserted.
+        int: Index at which point new_item must be inserted.
+
     """
     key = new_item.lower()
     low, high = 0, len(sorted_list)
@@ -71,19 +77,21 @@ def find_substring_in_dict_keys(dictionary,
                                 lower=True,
                                 first_only=False,
                                 substring=True):
-    """find keys that include key
+    """Find keys that include key.
 
     TODO:
         test performance against:
         return list(key for k in d.iterkeys() if key_str in k.lower())
 
     Args:
-        dictionary (dict): search this dictionary
-        key_str (str): find this string in keys of dictionary
-        lower (bool): case insensitive matching
-        first_only (bool): return only first found key
+        dictionary (dict): Dictionary to search in.
+        key_str (str): Find this string in keys of dictionary
+        lower (bool): case insensitive matching.
+        first_only (bool): If True, return only first found key.
+
     Returns:
-        list: found keys
+        list: Found keys.
+
     """
     result = []
     for key in dictionary.keys():
@@ -105,10 +113,9 @@ def find_substring_in_dict_keys(dictionary,
                     result.append(key)
     return result
 
-class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
-    """Filters columns by the knobs flags
 
-    """
+class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
+    """Filters columns by the knobs flags."""
 
     def __init__(self, parent):
         super(KnobStatesFilterModel, self).__init__(parent)
@@ -118,19 +125,20 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsColumn(self, column, parent):
-        """filter hidden and disabled knobs
+        """Filter out hidden and disabled knobs.
 
         Warning: if this knob is filtered out, but another knob is visible,
         both are hidden.
 
-        @ TODO: filter by row and column using the models flags
+        TODO: Filter by row and column using the models flags.
 
         Args:
             column (int): current column
             parent (QtCore.QModelIndex): parent index
 
         Returns:
-            bool: true if shown or false if column is excluded
+            bool: True if shown or False if column is excluded.
+
         """
         knob_name = self.sourceModel().headerData(column,
                                              QtCore.Qt.Horizontal,
@@ -159,11 +167,7 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
 
     @property
     def hidden_knobs(self):
-        """hidden knobs filter
-
-        Returns:
-            bool: true if hidden knobs are shown
-        """
+        """bool: Filter out hidden knobs."""
         return self._hidden_knobs
 
     @hidden_knobs.setter
@@ -173,11 +177,7 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
 
     @property
     def disabled_knobs(self):
-        """disabled knobs filter
-
-        Returns:
-            bool: true if disabled knobs are shown
-        """
+        """bool: Filter out disabled knobs."""
         return self._disabled_knobs
 
     @disabled_knobs.setter
@@ -187,10 +187,11 @@ class KnobStatesFilterModel(QtCore.QSortFilterProxyModel):
 
 
 class ListFilterModel(QtCore.QSortFilterProxyModel):
-    """abstract class that defines how the filter is set
+    """Abstract class that defines how the filter is set.
 
     The derived FilterProxyModel should do substring matching if
     length of filter is 1.
+
     """
 
     def __init__(self, parent, filter_delimiter=constants.FILTER_DELIMITER):
@@ -199,13 +200,11 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
         self.filter_delimiter = filter_delimiter
 
     def set_filter_str(self, filter_str):
-        """set filter as string with delimiter
+        """Set filter as string with delimiter.
 
         Args:
-            filter_str (str): filter
+            filter_str (str): Filter to use.
 
-        Returns:
-            None
         """
         filter_list = [filter_s.strip().lower() for filter_s
                        in filter_str.split(self.filter_delimiter)]
@@ -213,14 +212,16 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
         self.invalidateFilter()
 
     def match(self, string):
-        """Check if string is in filter_list or if it is substring when
-        filtering by one item only.
+        """Check if string is in filter_list.
+
+        Check for substring only when filtering by one item.
 
         Args:
             string (str): match this string against filter
 
         Returns:
-            bool: true if string is in filter_list
+            bool: True if string is in ``filter_list``.
+
         """
         matching = True
 
@@ -241,20 +242,19 @@ class ListFilterModel(QtCore.QSortFilterProxyModel):
 
 
 class HeaderHorizontalFilterModel(ListFilterModel):
-    """Filter by knob name
-
-    """
+    """Filter by knob name."""
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsColumn(self, column, parent):
-        """filter header with set filter
+        """Filter header with set filter.
 
         Args:
-            column (int): current column
-            parent (QtCore.QModelIndex():
+            column (int): Current column.
+            parent (QtCore.QModelIndex, ignored): The sources parent.
 
         Returns:
-            bool: true if header matches filter
+            bool: True if header matches the filter.
+
         """
         if not self.filter_list:
             return True
@@ -265,20 +265,19 @@ class HeaderHorizontalFilterModel(ListFilterModel):
         return self.match(header_name)
 
 class NodeNameFilterModel(ListFilterModel):
-    """Filter the model by nodename.
-
-    """
+    """Filter the model by nodename."""
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsRow(self, row, parent):
-        """filter header with set filter
+        """Filter header with set filter.
 
         Args:
-            row (int): current row
-            parent (QtCore.QModelIndex():
+            row (int): Current row.
+            parent (QtCore.QModelIndex, ignored): The sources parent.
 
         Returns:
-            bool: true if header matches filter
+            bool: True if header matches the filter.
+
         """
         if not self.filter_list:
             return True
@@ -290,20 +289,19 @@ class NodeNameFilterModel(ListFilterModel):
 
 
 class NodeClassFilterModel(ListFilterModel):
-    """Filter by node classes.
-
-    """
+    """Filter by node classes."""
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsRow(self, row, parent):
         """Filter by node classes.
 
         Args:
-            row (int): current row
-            parent (QtCore.QModelIndex): parent index.
+            row (int): Current row.
+            parent (QtCore.QModelIndex): Parent index.
 
         Returns:
             bool: True if node's class matches the filter.
+
         """
         if not self.filter_list:
             return True
@@ -316,22 +314,25 @@ class NodeClassFilterModel(ListFilterModel):
 
 # pylint: disable=too-few-public-methods
 class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
-    """filter out every empty column
+    """Filter out every empty column.
 
     Notes:
-        this Filter is expensive: O=pow(n,2)
+        This Filter is fairly expensive: O=pow(n,2) because it needs to run
+        for every row and column.
+
     """
 
     # pylint: disable=invalid-name, unused-argument
     def filterAcceptsColumn(self, column, parent):
-        """for every node check if current columns name is in its knobs
+        """For every node check if column's name is in the node's knobs.
 
         Args:
-            column (int): current column
-            parent (QtCore.QModelIndex):
+            column (int): Current column.
+            parent (QtCore.QModelIndex): The sources parent.
 
         Returns:
-            bool: true if at least one node has a knob for current column
+            bool: True if at least one node has a knob for current column.
+
         """
         header_name = self.sourceModel().headerData(column,
                                                     QtCore.Qt.Horizontal,
@@ -347,9 +348,16 @@ class EmptyColumnFilterModel(QtCore.QSortFilterProxyModel):
 
 # pylint: disable=invalid-name
 class NodeTableModel(QtCore.QAbstractTableModel):
-    """Digest and store nodes and serve their data.
-    """
+    """Digest and store nodes and serve their data."""
+
     def __init__(self, nodes=None):
+        """
+
+        Args:
+            nodes (:obj:`list` of :obj:`nuke.Node`, optional): Nodes to
+                represent in the model.
+
+        """
         super(NodeTableModel, self).__init__()
 
         self._node_list = nodes or []  # type: list
@@ -359,17 +367,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
     @property
     def node_list(self):
-        """list: Current list of displayed nodes."""
+        """:obj:`list` of :obj:`nuke.Node`: Current list of displayed nodes."""
         return self._node_list
 
     @property
     def node_names(self):
-        """list: All names of the current node list."""
+        """:obj:`list` of :obj:`str`: Names of the current node list."""
         return [node.name() for node in self.node_list]
 
     @property
     def knob_list(self):
-        """list: List of current knob names.
+        """:obj:`list` of :obj:`nuke.Knob`: Current knob's names.
 
         This list defines the horizontal header.
         To add a knob use insertColumns().
@@ -379,11 +387,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
     @property
     def knob_names(self):
-        """list:Names of all knobs.
-
-        Note: this property is obsolete at the moment but might be needed
-            when implementing header text from knobs label.
-        """
+        """:obj:`list` of :obj:`str`: Names of all knobs."""
         return self.knob_list
 
     @node_list.setter
@@ -406,13 +410,13 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                             items=[node])
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        """number of nodes
+        """Number of nodes in the model.
 
         Args:
-            parent (QtCore.QModelIndex): parent index
+            parent (QtCore.QModelIndex, optional): Parent index.
 
         Returns:
-            int: number of nodes
+            int: Number of nodes.
 
         """
         if parent.isValid():
@@ -424,17 +428,18 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return len(self.node_list)
 
     def columnCount(self, parent):
-        """Number of columns.
+        """Number of columns in the model.
 
         Note: When implementing a table based model,
         PySide.QtCore.QAbstractItemModel.columnCount()
         should return 0 when the parent is valid.
 
         Args:
-            parent (QtCore.QModelIndex): parent index
+            parent (QtCore.QModelIndex): Parent index.
 
         Returns:
-            int: number of columns
+            int: Number of columns.
+
         """
         if parent.isValid():
             return 0
@@ -455,7 +460,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         old_header_knobs_names = set(self.knob_names)
         new_header_knobs = {}
 
-        # collect all knobs to display
+        # Collect all knobs to display.
         # Iterating over copy of the node list to not saw off the tree
         # we're sitting on.
         for node in list(self.node_list):
@@ -473,20 +478,20 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 if knob_name not in new_header_knobs.keys():
                     new_header_knobs[knob_name] = knob
 
-        # collect all knobs to remove
+        # Collect all knobs to remove.
         remove_knobs = []
         for knob_name in self.knob_names:
             if knob_name not in new_header_knobs.keys():
                 remove_knobs.append(knob_name)
 
-        # remove all knobs that do not belong to current node selection.
+        # Remove all knobs that do not belong to current node selection.
         for knob_name in remove_knobs:
             remove_index = self.knob_names.index(knob_name)
             self.removeColumns(parent=QtCore.QModelIndex(),
                                column=remove_index,
                                count=1)
 
-        # Add all knobs at once, if model is empty
+        # Add all knobs at once, if model is empty.
         if not self.knob_list and new_header_knobs:
             # Sort knobs since they are not sorted on addition like below
             new_header_knobs_list = sorted(new_header_knobs.values(),
@@ -511,18 +516,18 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                                    items=[knob.name()])
 
     def insertColumns(self, column, count, parent, items):
-        """Add items to header
+        """Add items to header.
 
         Args:
-            parent (QtCore.QModelIndex): parent index
-            column: index of new columns
-            count (int): number of items to add (ignored)
-            item (list): items to add
+            parent (QtCore.QModelIndex): Parent index.
+            column (int): index of new columns.
+            count (int, unused): Number of items to add (ignored).
+            item (list): Items to add.
 
         Returns:
-            bool: True if items added
-        """
+            bool: True if items were added.
 
+        """
         count = len(items)
         self.beginInsertColumns(parent,
                                 column,
@@ -533,15 +538,16 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return True
 
     def removeColumns(self, column, count, parent):
-        """Remove columns
+        """Remove columns.
 
         Args:
-            parent (QtCore.QModelIndex): parent index
-            first (int): first column to remove
-            last (int): last column to remove
+            parent (QtCore.QModelIndex): Parent index.
+            first (int): First column to remove.
+            last (int): Last column to remove.
 
         Returns:
-            bool: True if successfully removed
+            bool: True if successfully removed.
+
         """
         self.beginRemoveColumns(parent, column, column + count - 1)
 
@@ -551,18 +557,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return True
 
     def insertRows(self, row, count, parent, items):
-        """Add consecutive rows
+        """Add consecutive rows.
 
         Args:
-            parent (QtCore.QModelIndex): parent index
-            column: index of new columns
-            count (int): number of items to add (ignored)
-            item (list): items to add
+            parent (QtCore.QModelIndex): Parent index.
+            count (int, unused): Number of items to add).
+            item (list): items to add.
 
         Returns:
-            bool: True if items added
-        """
+            bool: True if items added.
 
+        """
         count = len(items)
         self.beginInsertRows(parent,
                              row,
@@ -579,14 +584,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         """Remove consecutive rows.
 
         Args:
-            row (int): first row to remove
-            count (int): number of rows to remove
-            parent (QtCore.QModelIndex): parent index
-            setup_model_data (bool): setup model after removing row.
+            row (int): First row to remove.
+            count (int): Number of rows to remove.
+            parent (QtCore.QModelIndex): Parent index.
+            setup_model_data (bool): Setup model after removing row.
                 Disable to avoid recursion.
 
         Returns:
             bool: True if successfully removed.
+
         """
         self.beginRemoveRows(parent, row, row + count - 1)
         for i in reversed(range(row, row + count)):
@@ -604,6 +610,15 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         If a knob is animated, return colors matching Nuke's property panel.
         Else blend the nodes color with the apps palette color at certain
         amounts, depending on weather the node has a knob or not.
+
+        Args:
+            row (int): Row to get background color for.
+            node (nuke.Node): Node to get color from.
+            knob (nuke.Knob): Knob to get color from. Overwrites the node's
+                color if animated.
+        Returns:
+            QtGui.QBrush: Color of the current cell.
+
         """
         if knob and knob.isAnimated():
             # noinspection PyArgumentList
@@ -648,9 +663,10 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 QtCore.Qt.UserRole: the knob itself at current index
 
         Returns:
-            object
-        """
+            str|bool|tuple|list|nuke.Knob: The value of the current knob or the
+                knob itself.
 
+        """
         row = index.row()
         col = index.column()
 
@@ -727,13 +743,17 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
     @staticmethod
     def safe_string(string):
-        """encodes unicode to string because nuke knobs don't accept unicode.
+        """Encode unicode to string because nuke knobs don't accept unicode.
 
-            Args:
-                string: encode this string
+        Args:
+            string: Encode this string.
 
-            Returns:
-                str: string encoded or string unchanged if not unicode
+        Todo:
+            Fix `unicode` type comparison for Python 3.
+
+        Returns:
+            str: String encoded or string unchanged if not unicode.
+
         """
         if isinstance(string, unicode):
             return string.encode('utf-8')
@@ -747,9 +767,9 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             Currently this only works for a few knob types.
 
         Args:
-            index (QtCore.QModelIndex): current index
-            value (object): new value
-            role (QtCore.Qt.int): current Role. Only EditRole supported
+            index (QtCore.QModelIndex): Current index.
+            value (object): New value.
+            role (QtCore.Qt.int): Current Role. Only EditRole supported.
 
         Returns:
             bool: True if successfully set knob to new value, otherwise False.
@@ -801,14 +821,16 @@ class NodeTableModel(QtCore.QAbstractTableModel):
         return False
 
     def flags(self, index):
-        """cell selectable and editable if the corresponding knob is enabled
+        """Make cell selectable and editable for enabled knobs.
 
         This ensures that NukeX features can't be edited with nuke_i license.
+
         Args:
-            index (QtCore.QModelIndex): current index
+            index (QtCore.QModelIndex): Current index.
 
         Returns:
-            QtCore.Qt.ItemFlag: flags for current cell
+            QtCore.Qt.ItemFlag: Flag for current cell.
+
         """
         row = index.row()
         node = self.node_list[row]
@@ -839,7 +861,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         """Returns the header data.
 
-        For UserRole this returns the node or knob, depending on given
+        For ``UserRole`` this returns the node or knob, depending on given
         orientation.
 
         Args:
@@ -848,8 +870,11 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             role (QtCore.int): the current role.
                 QtCore.Qt.DisplayRole: name of node or knob
                 QtCore.Qt.UserRole: the node or knob itself
-        """
 
+        Returns:
+            str|nuke.Knob: The knob or it's name.
+
+        """
         if orientation == QtCore.Qt.Horizontal:
             if section >= len(self.knob_list):
                 return None

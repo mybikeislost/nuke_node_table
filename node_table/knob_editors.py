@@ -5,6 +5,7 @@ Some knobs need to be translated into custom editor widgets to be editable.
 
 # Import third-party modules
 import nuke
+from Qt import QtGui  # pylint: disable=no-name-in-module
 from Qt import QtWidgets  # pylint: disable=no-name-in-module
 
 
@@ -14,12 +15,20 @@ from node_table import constants
 
 
 class ArrayEditor(QtWidgets.QGroupBox):
-    """Knob editor to allow changing multiple 'channels' of an Array_Knob.
-
-    """
+    """Knob editor to allow changing multiple 'channels' of an Array_Knob."""
 
     def __init__(self, parent, length, rows=1,
                  decimals=constants.EDITOR_DECIMALS):
+        """Widget to edit multiple float values at a time.
+
+        Args:
+            parent (QtWidgets.QWidget): The parent widget.
+            length (int): Number of elements in the knob's array.
+            rows (int, optional): Split `length` by this many rows.
+            decimals (float, optional): Number of decimals to display in the
+                each `QDoubleSpinBox`.
+
+        """
         super(ArrayEditor, self).__init__(parent)
 
         self.length = length
@@ -49,13 +58,11 @@ class ArrayEditor(QtWidgets.QGroupBox):
         self.raise_()
 
     def set_editor_data(self, data):
-        """set data to editor.
+        """Set data to editor.
 
         Args:
-            data (float): knob value
+            data (:obj:`list` of :obj:`float`): The knob's value.
 
-        Returns:
-            None
         """
         for i, value in enumerate(data):
             self.double_spin_boxes[i].setValue(value)
@@ -65,6 +72,7 @@ class ArrayEditor(QtWidgets.QGroupBox):
 
         Returns:
             list,tuple: list of double values
+
         """
         data = [v.value() for v in self.double_spin_boxes]
         return data
@@ -74,6 +82,7 @@ class ColorEditor(ArrayEditor):
     """Editor for the AColor_Knob.
 
     An extra button allows to pick a new value.
+
     """
 
     def __init__(self, parent, decimals=constants.EDITOR_DECIMALS):
@@ -86,11 +95,7 @@ class ColorEditor(ArrayEditor):
         self.layout.addWidget(self.pick_button, 0, 4)
 
     def get_color(self):
-        """Set the editor to a color from nukes floating color picker.
-
-        Returns:
-            None
-        """
+        """Set the editor to a color from nukes floating color picker."""
         initial_color_hex = nuke_utils.to_hex(self.get_editor_data())
         new_color = nuke_utils.to_rgb(nuke.getColor(initial_color_hex))
         self.set_editor_data(new_color)

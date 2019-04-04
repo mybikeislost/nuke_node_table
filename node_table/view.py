@@ -1,5 +1,4 @@
-"""Build the widget and stack the models.
-"""
+"""Build the widget and stack the models."""
 
 # Import third party modules
 # pylint: disable=import-error
@@ -17,11 +16,20 @@ from node_table import model
 
 # pylint: disable=invalid-name
 class NodeHeaderView(QtWidgets.QHeaderView):
-    """This header view selects and zooms to node of clicked header section
-    shows properties of node if double clicked
+    """This header view selects and zooms to node of clicked header section.
+
+    Shows properties of node if double clicked.
+
     """
 
     def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
+        """Construct the header view.
+
+        Args:
+            orientation (QtCore.Qt.Orientation): Orientation of the header.
+            parent (QtWidgets.QWidget, optional): Parent widget.
+
+        """
         super(NodeHeaderView, self).__init__(orientation, parent)
         if "PySide2" in __binding__:
             self.setSectionsClickable(True)
@@ -37,11 +45,10 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         """Mimic Nuke's way of drawing nodes in DAG.
 
         Args:
-            painter (QtGui.QPainter):
-            rect (QtCore.QRect):
-            index:
+            painter (QtGui.QPainter): Painter to perform the painting.
+            rect (QtCore.QRect): Section to paint in.
+            index (QtCore.QModelIndex): Current logical index.
 
-        Returns: None
         """
         painter.save()
         QtWidgets.QHeaderView.paintSection(self, painter, rect, index)
@@ -77,46 +84,42 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         painter.drawRect(rect_adj)
 
     def get_node(self, section):
-        """returns node at section
+        """Return node at current section (index).
 
         Args:
-            section (int): current section
+            section (int): Index of current section in the models header data.
 
         Returns:
-            node (nuke.Node)
+            node (nuke.Node): Node at the current section.
+
         """
         return self.model().headerData(section,
                                        QtCore.Qt.Vertical,
                                        QtCore.Qt.UserRole)
 
     def select_node(self, section):
-        """selects node and zooms node graph
+        """Select node and zoom node graph.
 
         Args:
-            section (int):
+            section (int): Index of the node to zoom to.
 
-        Returns:
-            None
         """
         node = self.get_node(section)
         nuke_utils.select_node(node, zoom=1)
 
     def show_properties(self, section):
-        """opens properties bin for node at current section
+        """Open properties bin for node at current section.
 
         Args:
-            section (int):
+            section (int): Index of the node to show in properties bin.
 
-        Returns:
-            None
         """
         node = self.get_node(section)
         nuke.show(node)
 
 
 class NodeTableView(QtWidgets.QTableView):
-    """Table with multi-cell editing
-    """
+    """Table with multi-cell editing."""
 
     def __init__(self, parent=None):
         super(NodeTableView, self).__init__(parent)
@@ -135,7 +138,9 @@ class NodeTableView(QtWidgets.QTableView):
     def selectionCommand(self, index, event):
         """Returns the SelectionFlags to be used when updating a selection.
 
-        Prevent selection change when clicking a checkbox.
+        Allow to keep editing the same selection when clicking into a checkbox.
+        The selection change can't be prevented in the delegate, so we have to
+        return the `NoUpdate` flag here to keep the selection.
 
         Args:
             index (QtCore.QModelIndex): Current index.
@@ -167,14 +172,13 @@ class NodeTableView(QtWidgets.QTableView):
         return super(NodeTableView, self).selectionCommand(index, event)
 
     def mouseReleaseEvent(self, event):
-        """enter edit mode after single click
+        """Enter edit mode after single click.
 
-        Necessary for multi cell editing
+        Enter the edit mode on mouse release after dragging a selection or
+        selecting a single cell.
+
         Args:
-            event (QtCore.QEvent): mouse event
-
-        Returns:
-            None
+            event (QtCore.QEvent): The current mouse event.
 
         """
         if event.button() == QtCore.Qt.LeftButton:
@@ -200,13 +204,10 @@ class NodeTableView(QtWidgets.QTableView):
         """Set the current editor data to the model for the whole selection.
 
         Args:
-            editor:
-
-        Returns:
-            None
+            editor (QtWidgets.QWidget): The current editor.
 
         """
-        # call parent commitData first
+        # Call parent commitData first.
         super(NodeTableView, self).commitData(editor)
 
         # self.currentIndex() is the QModelIndex of the cell just edited
@@ -218,34 +219,37 @@ class NodeTableView(QtWidgets.QTableView):
             return
 
         _model = self.currentIndex().model()
-        # get the value that the user just submitted
+        # Get the value that the user just submitted.
         value = _model.data(self.currentIndex(), QtCore.Qt.EditRole)
         edited_knob = _model.data(self.currentIndex(), QtCore.Qt.UserRole)
 
-        _row, _column = self.currentIndex().row(), self.currentIndex().column()
+        current_row = self.currentIndex().row()
+        current_column = self.currentIndex().column()
 
-        # selection is a list of QItemSelectionRange instances
+        # Selection is a list of QItemSelectionRange instances.
         for isr in self.selectionModel().selection():
             rows = range(isr.top(), isr.bottom() + 1)
             columns = range(isr.left(), isr.right() +1)
             for row in rows:
                 for col in columns:
-                    if row != _row or col != _column:
-                        # row,curCol is also in the selection. make an index:
+                    if row != current_row or col != current_column:
+                        # Other rows and columns are also in the selection.
+                        # Create an index so we can apply the same value
+                        # change.
                         idx = _model.index(row, col)
-                        # so we can apply the same value change
                         knob = _model.data(idx, QtCore.Qt.UserRole)
                         if type(knob) == type(edited_knob):
                             _model.setData(idx, value, QtCore.Qt.EditRole)
 
 
 class MultiCompleter(QtWidgets.QCompleter):
-    """QCompleter that supports completing multiple words in a QLineEdit,
-        separated by delimiter.
+    """Complete multiple words in a QLineEdit, separated by a delimiter.
 
     Args:
-        model_list (QtCore.QStringListModel or list): complete these words
-        delimiter (str): separate words by this string (optional, default: ",")
+        model_list (QtCore.QStringListModel or list): Words to complete.
+        delimiter (str, optional): Separate words by this string.
+            (default: ",").
+
     """
     def __init__(self, model_list=None, delimiter=","):
         super(MultiCompleter, self).__init__(model_list)
@@ -254,13 +258,14 @@ class MultiCompleter(QtWidgets.QCompleter):
         self.delimiter = delimiter
 
     def pathFromIndex(self, index):
-        """Complete the input
+        """Complete the input.
 
         Args:
-            index (QtCore.QModelIndex):
+            index (QtCore.QModelIndex): Current index.
 
         Returns:
-            str: completed input
+            str: Completed input.
+
         """
         path = super(MultiCompleter, self).pathFromIndex(index)
         lst = str(self.widget().text()).split(self.delimiter)
@@ -270,13 +275,17 @@ class MultiCompleter(QtWidgets.QCompleter):
         return path
 
     def splitPath(self, path):
-        """Split and strip the input
+        """Split and strip the input.
+
+        Splits the given path into strings that are used to match at each level
+        in the model().
 
         Args:
-            path (str):
+            path (str): String to split.
 
         Returns:
-            str
+            :obj:`list` of :obj:`string`: Stirng split by the delimiter.
+
         """
         path = str(path.split(self.delimiter)[-1]).lstrip(' ')
         return [path]
@@ -284,21 +293,27 @@ class MultiCompleter(QtWidgets.QCompleter):
 
 # pylint: disable=too-few-public-methods
 class KeepOpenMenu(QtWidgets.QMenu):
-    """Menu that stays open to allow multiple selections
+    """Menu that stays open to allow toggling multiple actions.
 
-    Warnings: broken atm, manu actually doesn't stay open
+    Warnings: broken, manu actually doesn't stay open.
+    TODO: keep menu open.
+
     """
-    # TODO: keep menu open
 
     def eventFilter(self, obj, event):
         """Eat the mouse event but trigger the objects action.
 
+        Filters events if this object has been installed as an event filter
+        for the watched object.
+
         Args:
-            obj:
-            event:
+            obj (QtCore.QObject): Watched object.
+            event (QtCore.QEvent): Current event.
 
         Returns:
-            bool
+            bool: True if the event is filtered out, otherwise False (to
+                process it further).
+
         """
         if event.type() in [QtCore.QEvent.MouseButtonRelease]:
             if isinstance(obj, QtWidgets.QMenu):
@@ -314,36 +329,46 @@ class KeepOpenMenu(QtWidgets.QMenu):
 
 # pylint: disable=too-few-public-methods
 class CheckAction(QtWidgets.QAction):
-    """Creates a checkable QAction
+    """A checkable QAction."""
 
-    Args:
-        text (str): text to display on QAction
-        parent (QtWidgets.QWidget): parent widget (optional)
-    """
     def __init__(self, text, parent=None):
+        """Create a checkable QAction.
+
+        Args:
+            text (str): text to display on QAction
+            parent (QtWidgets.QWidget): parent widget (optional).
+
+        """
         super(CheckAction, self).__init__(text, parent)
         self.setCheckable(True)
 
 
 # pylint: disable=line-too-long, too-many-instance-attributes
 class NodeTableWidget(QtWidgets.QWidget):
-    """Creates the GUI for the table view and filtering
+    """The main GUI for the table view and filtering.
 
     Filtering is achieved by stacking multiple custom QSortFilterProxyModels.
     The node list and filters are accessible through pythonic properties.
 
     Examples:
-        from NodeTable import view
-        table = view.NodeTableWidget()
-        table.node_list = nuke.selectedNodes()
-        table.node_class_filter = 'Merge2, Blur'
+        >>> from node_table import view
+        >>> table = view.NodeTableWidget()
+        >>> table.node_list = nuke.selectedNodes()
+        >>> table.node_class_filter = 'Merge2, Blur'
+        >>> table.knob_name_filter = 'disabled, cached'
 
-    Args:
-        node_list (list): list of nuke.Node nodes (optional).
-        parent (QtGui.QWidget): parent widget (optional)
     """
 
     def __init__(self, node_list=None, parent=None):
+        """    Args:
+        node_list (list): list of nuke.Node nodes (optional).
+        parent (QtGui.QWidget): parent widget (optional)
+
+        Args:
+            node_list (:obj:`list` of :obj:`str`, optional): Nodes to display.
+            parent (QtWidgets.QWidget, optional): Parent widget.
+
+        """
         super(NodeTableWidget, self).__init__(parent)
 
         # Widget
@@ -483,29 +508,22 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.node_list = node_list or []
 
     def load_selected(self):
-        """Sets the node list to current selection.
-
-        Returns:
-            None
-        """
-
+        """Sets the node list to current selection."""
         self.node_list = nuke_utils.get_selected_nodes(self.grouped_nodes)
 
     @property
     def node_names(self):
-        """list[str]: sorted list of current nodes
-        names.
-
-        """
+        """:obj:`list` of :obj:`str`: Sorted list of current node's names."""
         node_names = [node.name() for node in self.node_list]
         return sorted(node_names, key=lambda n: n.lower())
 
     @property
     def node_classes(self):
-        """list[str]: sorted list of node classes
+        """:obj:`list` of :obj:`str`: Sorted list of node's classes.
 
-        If node_list is set, classes are updated to include only
+        If `node_list` is set, classes are updated to include only
         classes of current nodes else all possible node classes are returned.
+
         """
         if self.node_list:
             node_classes = set()
@@ -517,8 +535,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def knob_names(self):
-        """list[str]: all knob names of current nodes.
-        """
+        """:obj:`list` of :obj:`str`:: All knob names of current nodes."""
         knob_names = set()
         for node in self.node_list:
             for knob in node.knobs():
@@ -528,10 +545,12 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_list(self):
-        """list[nuke.Node]: List of loaded nodes before all filtering.
+        """:obj:`list` of :obj:`nuke.Node`: List of loaded nodes before all
+            filtering.
 
         Setting this attribute updates all models and warns when loading too
         many nodes.
+
         """
         self._node_list = [node for node in self._node_list
                            if nuke_utils.node_exists(node)]
@@ -570,8 +589,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             checked (bool): If True, knobs with hidden state are displayed.
 
-        Returns:
-            None
         """
         # PySide doesn't pass checked state
         if checked is None:
@@ -581,7 +598,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def grouped_nodes(self):
-        """bool: Show selected nodes inside of group nodes."""
+        """bool: Show selected nodes inside of selected group nodes."""
         return self._grouped_nodes
 
     @grouped_nodes.setter
@@ -597,8 +614,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             checked (bool): If True, knobs with hidden state are displayed.
 
-        Returns:
-            None
         """
         # PySide doesn't pass checked state
         if checked is None:
@@ -608,12 +623,11 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def hidden_knobs(self):
-        """bool: Show hidden knobs."""
+        """bool: Show hidden knobs of the node."""
         return self._hidden_knobs
 
     @hidden_knobs.setter
     def hidden_knobs(self, checked):
-
         self._hidden_knobs = checked
         self.knob_states_filter_model.hidden_knobs = checked
         self.table_view.resizeColumnsToContents()
@@ -626,8 +640,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             checked (bool): If True, knobs with disabled state are displayed.
 
-        Returns:
-            None
         """
         # PySide doesn't pass checked state
         if checked is None:
@@ -655,8 +667,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             checked: If True, show knobs with hidden or disabled state.
 
-        Returns:
-            None
         """
         # PySide doesn't pass checked state
         if checked is None:
@@ -677,11 +687,7 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.disabled_knobs = checked
 
     def update_all_knob_states_action(self):
-        """Update action (checkbox) 'All' knob states.
-
-        Returns:
-            None
-        """
+        """Update action (checkbox) 'All' knob states."""
         self.all_knobs_action.setChecked(all([self.hidden_knobs,
                                               self.disabled_knobs]))
 
@@ -692,8 +698,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             value (str): list of knob names to display.
 
-        Returns:
-            None
         """
         if not value:
             value = self.knob_name_filter_line_edit.text()
@@ -702,7 +706,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def knob_name_filter(self):
-        """str: list of knob names separated by delimiters."""
+        """str: List of knob names separated by delimiters."""
         return self._knob_name_filter
 
     @knob_name_filter.setter
@@ -716,8 +720,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_name_filter(self):
-        """str: list of node names seperated by delimiters.
-        """
+        """str: List of node names separated by delimiters."""
         return self._node_name_filter
 
     @node_name_filter.setter
@@ -731,10 +734,8 @@ class NodeTableWidget(QtWidgets.QWidget):
         """Update the node names filter.
 
         Args:
-            node_names (str): list of node names separated by delimiter.
+            node_names (str): List of node names separated by delimiter.
 
-        Returns:
-            None
         """
         if not node_names:
             node_names = self.node_name_filter_line_edit.text()
@@ -743,8 +744,7 @@ class NodeTableWidget(QtWidgets.QWidget):
 
     @property
     def node_class_filter(self):
-        """str: List of node classes to display.
-        """
+        """str: List of node classes to display separated by delimiter."""
         return self._node_class_filter
 
     @node_class_filter.setter
@@ -760,8 +760,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         Args:
             node_classes (str): delimited str list of node Classes to display.
 
-        Returns:
-            None
         """
         if not node_classes:
             node_classes = self.node_class_filter_line_edit.text()
