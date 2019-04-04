@@ -89,13 +89,38 @@ class ColorEditor(ArrayEditor):
         super(ColorEditor, self).__init__(parent=parent, length=4, rows=1,
                                           decimals=decimals)
 
-        self.pick_button = QtWidgets.QPushButton('c')
+        self.pick_button = None
+        self._create_pick_button()
+
+    def _create_pick_button(self):
+        """Create the pick button and add it to the widget."""
+        self.pick_button = QtWidgets.QPushButton()
         self.pick_button.clicked.connect(self.get_color)
-        self.pick_button.setMaximumWidth(32)
+        self.pick_button.setMaximumWidth(24)
+        self.pick_button.setMaximumHeight(24)
+        self.pick_button.setAutoFillBackground(True)
         self.layout.addWidget(self.pick_button, 0, 4)
+
+    def set_editor_data(self, data):
+        """Update the data on the editor.
+
+        Args:
+            data (:obj:`list` of :obj:`float`): Color to set editor to.
+
+        """
+        super(ColorEditor, self).set_editor_data(data)
+        self._set_color_picker_button_color()
+
+    def _set_color_picker_button_color(self):
+        """Update the color of the pick button."""
+        color = self.get_editor_data()[:3]
+        color = [int(c * 255) for c in color]
+        style_sheet = 'QPushButton {{background-color:rgb({},{},{})}}'.format(*color)
+        self.pick_button.setStyleSheet(style_sheet)
 
     def get_color(self):
         """Set the editor to a color from nukes floating color picker."""
         initial_color_hex = nuke_utils.to_hex(self.get_editor_data())
         new_color = nuke_utils.to_rgb(nuke.getColor(initial_color_hex))
         self.set_editor_data(new_color)
+        self._set_color_picker_button_color()
