@@ -222,10 +222,6 @@ def select_node(node, zoom=1):
             be focused on the given node.
 
     """
-    # deselecting all nodes:  looks stupid but works in non-commercial mode
-    nuke.selectAll()
-    nuke.invertSelection()
-
     # Get the top-most parent nodes name.
     if isinstance(node, nuke.Node):
         full_name = node.fullName()
@@ -241,7 +237,7 @@ def select_node(node, zoom=1):
 
     # Select and zoom to Node.
     if isinstance(node, nuke.Node):
-        node['selected'].setValue(True)
+        node.selectOnly()
         if zoom:
             nuke.zoom(zoom, [node.xpos(), node.ypos()])
 
