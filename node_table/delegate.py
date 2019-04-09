@@ -346,7 +346,12 @@ class KnobsItemDelegate(CheckBoxDelegate):
         value = model.data(index, QtCore.Qt.EditRole)
 
         # Array knobs:
-        if isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
+        array_knob_types = (
+            nuke.Array_Knob,
+            nuke.Axis_Knob,
+            nuke.Transform2d_Knob,
+        )
+        if isinstance(knob, array_knob_types):
             if isinstance(knob, nuke.Boolean_Knob):
                 super(KnobsItemDelegate, self).updateEditorGeometry(editor,
                                                                     option,
@@ -377,7 +382,8 @@ class KnobsItemDelegate(CheckBoxDelegate):
                         rect.setHeight(constants.EDITOR_CELL_HEIGHT *
                                        knob.height())
 
-                    elif isinstance(knob, nuke.Transform2d_Knob):
+                    elif isinstance(knob, (nuke.Axis_Knob,
+                                           nuke.Transform2d_Knob)):
                         root = math.sqrt(len(value))
                         width = constants.EDITOR_CELL_WIDTH * root
                         rect.setWidth(width)
