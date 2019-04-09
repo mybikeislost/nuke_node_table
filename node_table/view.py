@@ -514,7 +514,7 @@ class NodeTableWidget(QtWidgets.QWidget):
     @property
     def node_names(self):
         """:obj:`list` of :obj:`str`: Sorted list of current node's names."""
-        node_names = [node.name() for node in self.node_list]
+        node_names = [node.fullName() for node in self.node_list]
         return sorted(node_names, key=lambda n: n.lower())
 
     @property

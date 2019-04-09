@@ -373,7 +373,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
     @property
     def node_names(self):
         """:obj:`list` of :obj:`str`: Names of the current node list."""
-        return [node.name() for node in self.node_list]
+        return [node.fullName() for node in self.node_list]
 
     @property
     def knob_list(self):
@@ -403,7 +403,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
 
         for node in new_nodes:
             insert_index = bisect_case_insensitive(self.node_names,
-                                                   node.name())
+                                                   node.fullName())
             self.insertRows(parent=QtCore.QModelIndex(),
                             row=insert_index,
                             count=1,
@@ -897,7 +897,7 @@ class NodeTableModel(QtCore.QAbstractTableModel):
                 return
 
             if role == QtCore.Qt.DisplayRole:
-                return node.name()
+                return node.fullName()
             elif role == QtCore.Qt.UserRole:
                 return node
             elif role == QtCore.Qt.BackgroundRole:
