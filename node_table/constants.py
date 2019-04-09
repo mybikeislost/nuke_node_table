@@ -8,7 +8,10 @@ PACKAGE_NICE_NAME = 'Node Spreadsheet'
 FILTER_DELIMITER = ','
 
 # Knob classes that can't be edited directly
-READ_ONLY_KNOBS = [nuke.Transform2d_Knob]
+READ_ONLY_KNOBS = [
+    nuke.Axis_Knob,
+    nuke.Transform2d_Knob,
+]
 
 # Colors
 # knob is animated
