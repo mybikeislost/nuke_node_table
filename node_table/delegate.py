@@ -367,10 +367,11 @@ class KnobsItemDelegate(CheckBoxDelegate):
                     rows, columns = knob.rows(), knob.columns()
                 except AttributeError:
                     # Not an IArray_Knob.
-                    columns = knob.width()
-                except AttributeError:
-                    # Not an Array_Knob.
-                    pass
+                    try:
+                        columns = knob.width()
+                    except AttributeError:
+                        # Not an Array_Knob.
+                        pass
 
                 if isinstance(knob, nuke.ColorChip_Knob):
                     columns = 4
