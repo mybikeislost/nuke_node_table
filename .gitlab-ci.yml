@@ -13,5 +13,3 @@ release:
   artifacts:
     paths:
     - dist/
-
-
