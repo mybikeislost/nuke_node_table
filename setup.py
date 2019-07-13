@@ -19,10 +19,10 @@ setup(
     description="Spreadsheet showing and editing knobs of selected Nodes.",
     license="MIT",
     keywords="nuke nodes knobs multi node editor",
-    url="https://bitbucket.org/filmkorn/nodetable",
+    url="https://gitlab.com/filmkorn/nuke_node_table",
     project_urls={
-        "Bug Tracker": "https://bitbucket.org/filmkorn/nodetable/issues",
-        "Source Code": "https://bitbucket.org/filmkorn/nodetable/src",
+        "Bug Tracker": "https://gitlab.com/filmkorn/nuke_node_table/issues",
+        "Source Code": "https://gitlab.com/filmkorn/nuke_node_table/tree/master",
     },
 
     classifiers=[
