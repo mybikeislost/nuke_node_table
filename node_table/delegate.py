@@ -234,12 +234,15 @@ class KnobsItemDelegate(CheckBoxDelegate):
             elif isinstance(knob, nuke.Transform2d_Knob):
                 rows = math.sqrt(len(model.data(index, QtCore.Qt.EditRole)))
 
-            if isinstance(model.data(index, QtCore.Qt.EditRole),
-                          (list, tuple)):
-                items = len(model.data(index, QtCore.Qt.EditRole))
-                return knob_editors.ArrayEditor(parent,
-                                                items,
-                                                rows)
+            data = model.data(index, QtCore.Qt.EditRole)
+            try:
+                items = len(data)
+            except TypeError:
+                items = 1
+
+            return knob_editors.ArrayEditor(parent,
+                                            items,
+                                            rows)
 
         if isinstance(knob, nuke.Format_Knob):
             combobox = QtWidgets.QComboBox(parent)
@@ -273,7 +276,7 @@ class KnobsItemDelegate(CheckBoxDelegate):
             return editor.set_editor_data(data)
 
         # Array knobs:
-        if isinstance(data, (list, tuple)):
+        elif isinstance(knob, (nuke.Array_Knob, nuke.Transform2d_Knob)):
             editor.set_editor_data(data)
         else:
             super(KnobsItemDelegate, self).setEditorData(editor, index)

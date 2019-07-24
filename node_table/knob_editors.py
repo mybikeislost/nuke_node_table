@@ -64,8 +64,12 @@ class ArrayEditor(QtWidgets.QGroupBox):
             data (:obj:`list` of :obj:`float`): The knob's value.
 
         """
-        for i, value in enumerate(data):
-            self.double_spin_boxes[i].setValue(value)
+        try:
+            for i, value in enumerate(data):
+                self.double_spin_boxes[i].setValue(value)
+        except TypeError:
+            # Set single values directly.
+            self.double_spin_boxes[0].setValue(data)
 
     def get_editor_data(self):
         """Return the current editor data.
