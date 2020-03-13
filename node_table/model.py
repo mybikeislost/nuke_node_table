@@ -44,8 +44,17 @@ def get_palette(widget=None):
         QtGui.QPalette: The color palette of the current application or widget.
 
     """
-    app = QtWidgets.QApplication.instance() #tpye: QtWidget.QApplication
-    return app.palette(widget)
+    app = QtWidgets.QApplication.instance()  # tpye: QtWidget.QApplication
+    try:        
+        return app.palette(widget)
+    except AttributeError:
+        # app is a QCoreApplication - see: https://bugreports.qt.io/browse/PYSIDE-1164
+        import shiboken2
+        app = shiboken2.wrapInstance(
+            shiboken2.getCppPointer(QtWidgets.QApplication.instance())[0],
+            QtWidgets.QApplication
+        )
+        return app.palette(widget)
 
 
 def bisect_case_insensitive(sorted_list, new_item):
