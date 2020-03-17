@@ -427,6 +427,12 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.nodes_menu.addAction(self.grouped_nodes_action)
         self.grouped_nodes_action.triggered[bool].connect(self.grouped_nodes_changed)
 
+        self.layout.addWidget(self.menu_bar)
+
+        self.filter_separator_knobs = QtWidgets.QFrame(self)
+        self.filter_separator_knobs.setFrameShape(QtWidgets.QFrame.HLine)
+        self.layout.addWidget(self.filter_separator_knobs)
+
         # Filter Widget
         self.filter_widget = QtWidgets.QWidget(self)
         self.filter_layout = QtWidgets.QHBoxLayout(self.filter_widget)
@@ -434,9 +440,10 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_widget.setLayout(self.filter_layout)
 
         # Filter by node class:
-        self.node_class_filter_label = QtWidgets.QLabel('node: class:')
+        self.node_class_filter_label = QtWidgets.QLabel('Node:')
         self.filter_layout.addWidget(self.node_class_filter_label)
         self.node_class_filter_line_edit = QtWidgets.QLineEdit(self.filter_widget)
+        self.node_class_filter_line_edit.setPlaceholderText("class")
         self.node_class_completer = MultiCompleter(self.node_classes)
         self.node_class_model = self.node_class_completer.model()
         self.node_class_filter_line_edit.setCompleter(self.node_class_completer)
@@ -444,25 +451,21 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.filter_layout.addWidget(self.node_class_filter_line_edit)
 
         # Filter by node name:
-        self.node_name_filter_label = QtWidgets.QLabel('name:')
-        self.filter_layout.addWidget(self.node_name_filter_label)
         self.node_name_filter_line_edit = QtWidgets.QLineEdit()
-        self.node_name_filter_label.setAcceptDrops(True)
+        self.node_name_filter_line_edit.setPlaceholderText("name")
+        self.node_name_filter_line_edit.setAcceptDrops(True)
         self.node_name_completer = MultiCompleter(self.node_names)
         self.node_name_model = self.node_name_completer.model()
         self.node_name_filter_line_edit.setCompleter(self.node_name_completer)
         self.node_name_filter_line_edit.textChanged.connect(self.node_name_filter_changed)
         self.filter_layout.addWidget(self.node_name_filter_line_edit)
 
-        self.filter_separator_knobs = QtWidgets.QFrame(self.filter_widget)
-        self.filter_separator_knobs.setFrameShape(QtWidgets.QFrame.VLine)
-        self.filter_layout.addWidget(self.filter_separator_knobs)
-
         # Filter by knob name:
-        self.knob_filter_label = QtWidgets.QLabel('knob: name')
+        self.knob_filter_label = QtWidgets.QLabel('Knob:')
         self.filter_layout.addWidget(self.knob_filter_label)
 
         self.knob_name_filter_line_edit = QtWidgets.QLineEdit()
+        self.knob_name_filter_line_edit.setPlaceholderText("name")
         self.knob_name_filter_line_edit.setAcceptDrops(True)
         self.knob_name_filter_completer = MultiCompleter(self.knob_names)
         self.knob_name_filter_model = self.knob_name_filter_completer.model()
@@ -470,7 +473,6 @@ class NodeTableWidget(QtWidgets.QWidget):
         self.knob_name_filter_line_edit.textChanged.connect(self.knob_name_filter_changed)
         self.filter_layout.addWidget(self.knob_name_filter_line_edit)
 
-        self.layout.addWidget(self.menu_bar)
         self.layout.addWidget(self.filter_widget)
 
         self.table_view = NodeTableView(self)
