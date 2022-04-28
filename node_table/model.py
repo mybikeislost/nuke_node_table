@@ -7,6 +7,9 @@ except NameError:
     # Python 3
     string_types = str
 
+# Import built-in modules
+import sys
+
 # Import third-party modules
 import nuke  # pylint: disable=import-error
 from Qt import QtCore, QtGui, QtWidgets  # pylint: disable=no-name-in-module
@@ -761,6 +764,11 @@ class NodeTableModel(QtCore.QAbstractTableModel):
             str: String encoded or string unchanged if not unicode.
 
         """
+
+        # Check if running in Python 3
+        if sys.version_info.major >= 3:
+            return string
+
         if isinstance(string, unicode):
             return string.encode('utf-8')
         else:
