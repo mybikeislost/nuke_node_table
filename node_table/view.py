@@ -62,6 +62,22 @@ class NodeHeaderView(QtWidgets.QHeaderView):
                                          QtCore.Qt.Vertical,
                                          QtCore.Qt.ForegroundRole)  # type: QtGui.QPen
 
+        node = self.model().headerData(
+            index,
+            QtCore.Qt.Vertical,
+            QtCore.Qt.UserRole,
+        )
+        disabled_knob = node.knob("disable")
+        enabled = not disabled_knob.value() if disabled_knob else True
+        is_animated = disabled_knob.isAnimated() if disabled_knob else False
+        life_time_knob = node.knob("useLifetime")
+        if life_time_knob and life_time_knob.value():
+            in_life_time = node["lifetimeStart"].value() <= nuke.root()['frame'].value() <= node["lifetimeEnd"].value()
+            use_life_time = life_time_knob.value()
+        else:
+            in_life_time = True
+            use_life_time = False
+
         if self.shade_dag_nodes_enabled:
             gradient = QtGui.QLinearGradient(rect.topLeft(),
                                              rect.bottomLeft())
@@ -82,6 +98,18 @@ class NodeHeaderView(QtWidgets.QHeaderView):
         painter.drawText(rect, QtCore.Qt.AlignCenter, text)
         painter.setPen(QtGui.QPen(QtGui.QColor.fromRgbF(0.0, 0.0, 0.0)))
         painter.drawRect(rect_adj)
+
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.SolidLine))
+        if not enabled:
+            if is_animated and not enabled:
+                painter.drawLine(rect_adj.bottomLeft(), rect_adj.topRight())
+            elif not enabled and not is_animated:
+                painter.drawLine(rect_adj.bottomRight(), rect_adj.topLeft())
+                painter.drawLine(rect_adj.bottomLeft(), rect_adj.topRight())
+        elif use_life_time and not in_life_time:
+            # Life time
+            painter.drawLine(rect_adj.topLeft(), rect_adj.bottomRight())
 
     def get_node(self, section):
         """Return node at current section (index).
