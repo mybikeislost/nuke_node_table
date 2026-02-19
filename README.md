@@ -1,6 +1,6 @@
 # Node Spreadsheet
 
-A fork of [filmkorn/nuke_node_table](https://gitlab.com/filmkorn/nuke_node_table) by Mitja Mueller-Jend.
+A fork of [filmkorn/nuke_node_table](https://gitlab.com/filmkorn/nuke_node_table) by Mitja Mueller-Jend, updated for Nuke 16 (PySide6) compatibility.
 
 A spreadsheet-style panel for [Nuke](https://www.foundry.com/products/nuke) that lets you view and edit knobs across multiple selected nodes simultaneously.
 
