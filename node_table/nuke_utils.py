@@ -17,7 +17,16 @@ try:
     import nuke
 except ImportError:
     # We need some Qt to mimic nukes interface functions.
-    from Qt import QtWidgets  # pylint: disable=no-name-in-module
+    try:
+        # Try PySide6 first (Nuke 16+)
+        from PySide6 import QtWidgets
+    except ImportError:
+        try:
+            # Fall back to PySide2 (Nuke 11-15)
+            from PySide2 import QtWidgets
+        except ImportError:
+            # Fall back to PySide (Nuke <11)
+            from PySide import QtGui as QtWidgets
 
     NUKE_LOADED = False
 

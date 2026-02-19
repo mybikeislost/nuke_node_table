@@ -5,7 +5,22 @@
 import nuke
 
 # Keeping this for development to enable auto-completion.
-from Qt import QtCore, QtGui, QtWidgets, __binding__  # pylint: disable=no-name-in-module
+if nuke.NUKE_VERSION_MAJOR >= 16:
+    from PySide6 import QtCore, QtGui, QtWidgets
+    from PySide6.QtCore import Qt
+    # In PySide6, QAction and QShortcut moved to QtGui
+    QtWidgets.QAction = QtGui.QAction
+    QtWidgets.QShortcut = QtGui.QShortcut
+elif nuke.NUKE_VERSION_MAJOR < 11:
+    from PySide import QtCore, QtGui, QtGui as QtWidgets
+    from PySide.QtCore import Qt
+else:
+    from PySide2 import QtWidgets, QtGui, QtCore
+    from PySide2.QtCore import Qt
+    if not hasattr(QtGui, 'QAction'):
+        QtGui.QAction = QtWidgets.QAction
+    if not hasattr(QtGui, 'QShortcut'):
+        QtGui.QShortcut = QtWidgets.QShortcut
 
 # Import internal modules
 from node_table import constants
@@ -31,9 +46,9 @@ class NodeHeaderView(QtWidgets.QHeaderView):
 
         """
         super(NodeHeaderView, self).__init__(orientation, parent)
-        if "PySide2" in __binding__:
+        if nuke.NUKE_VERSION_MAJOR >= 11:
             self.setSectionsClickable(True)
-        elif "PySide" in __binding__:
+        else:
             self.setClickable(True)
 
         self.shade_dag_nodes_enabled = nuke_utils.shade_dag_nodes_enabled()

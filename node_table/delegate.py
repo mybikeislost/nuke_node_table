@@ -4,7 +4,22 @@ import math
 
 # Import third-party modules
 import nuke
-from Qt import QtCore, QtWidgets  # pylint: disable=no-name-in-module
+if nuke.NUKE_VERSION_MAJOR >= 16:
+    from PySide6 import QtCore, QtGui, QtWidgets
+    from PySide6.QtCore import Qt
+    # In PySide6, QAction and QShortcut moved to QtGui
+    QtWidgets.QAction = QtGui.QAction
+    QtWidgets.QShortcut = QtGui.QShortcut
+elif nuke.NUKE_VERSION_MAJOR < 11:
+    from PySide import QtCore, QtGui as QtWidgets
+    from PySide.QtCore import Qt
+else:
+    from PySide2 import QtWidgets, QtGui, QtCore
+    from PySide2.QtCore import Qt
+    if not hasattr(QtGui, 'QAction'):
+        QtGui.QAction = QtWidgets.QAction
+    if not hasattr(QtGui, 'QShortcut'):
+        QtGui.QShortcut = QtWidgets.QShortcut
 
 # Import local modules
 from node_table import constants
