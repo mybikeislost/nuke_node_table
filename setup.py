@@ -4,9 +4,8 @@ setup(
     name="node_table",
     packages=find_packages(),
 
-    install_requires=['Qt.py>=1.0'],
     setup_requires=['setuptools_scm'],
-    python_requres='python>=2.7,<4',
+    python_requires='>=2.7,<4',
 
     package_data={
         # If any package contains *.txt or *.rst files, include them:
@@ -19,10 +18,11 @@ setup(
     description="Spreadsheet showing and editing knobs of selected Nodes.",
     license="MIT",
     keywords="nuke nodes knobs multi node editor",
-    url="https://gitlab.com/filmkorn/nuke_node_table",
+    url="https://github.com/mybikeislost/nuke_node_table",
     project_urls={
-        "Bug Tracker": "https://gitlab.com/filmkorn/nuke_node_table/issues",
-        "Source Code": "https://gitlab.com/filmkorn/nuke_node_table/tree/master",
+        "Bug Tracker": "https://github.com/mybikeislost/nuke_node_table/issues",
+        "Source Code": "https://github.com/mybikeislost/nuke_node_table",
+        "Upstream": "https://gitlab.com/filmkorn/nuke_node_table",
     },
 
     classifiers=[
